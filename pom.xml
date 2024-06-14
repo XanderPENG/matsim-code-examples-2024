@@ -50,6 +50,10 @@
 			<id>jzy3d</id>
 			<url>https://maven.jzy3d.org/releases/</url>
 		</repository>
+		<repository>
+			<id>pt2matsim</id>
+			<url>https://repo.matsim.org/repository/matsim/</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
@@ -162,6 +166,11 @@
 			<groupId>org.matsim.contrib</groupId>
 			<artifactId>decongestion</artifactId>
 			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.matsim</groupId>
+			<artifactId>pt2matsim</artifactId>
+			<version>24.4</version>
 		</dependency>
 
 		<!-- Include the JUnit testing library -->
