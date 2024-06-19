@@ -12,7 +12,7 @@ import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
 public class RunCreateCycleNetwork {
     private static final String osmFile = "src/main/resources/be.kuleuven.xanderpeng.emissions/network/input/mapSample.pbf"; //  OSM file path
-    private static final String outputCRS = "EPSG:32631"; //UTM-31N
+    private static final String outputCRS = "EPSG:32631"; //UTM-31N; lambert 72; 31370
     private static final String outputNetworkFile = "src/main/resources/be.kuleuven.xanderpeng.emissions/network/output/bicycleNetwork.xml";
 
     public static void main(String[] args) {

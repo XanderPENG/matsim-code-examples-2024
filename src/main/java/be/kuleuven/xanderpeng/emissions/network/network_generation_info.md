@@ -7,3 +7,7 @@
 ### 1. using @multimodal contrib to create a network (see [here](RunCreateMultimodalNetworkFromOSM.java)) 
 However, it seems this API can only generate network during runtime, and the generated network is not saved as a file.
 ### 2. using ___@pt2matsim___  to create a multimodal network (see [here](RunCreateMultimodalNetworkbyPT2Matsim.java));
+
+## Add Attributes into the cycling network
+- we can use @addOverridingLinkProperties (in the @SupersonicOsmNetworkReader) to add link properties to the network;
+- 
