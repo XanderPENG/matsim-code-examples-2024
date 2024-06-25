@@ -9,7 +9,7 @@ import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 public class RunCreateBasicNXFromOSM {
     // choose an appropriate coordinate transformation: Leuven is in UTM zone 31N with EPSG code 32631
     private final String UTM31nAsEpsg = "EPSG:32631";
-    private final String input = "D:\\IdeaProjects\\matsim-code-examples-2024\\scenarios\\xander_peng\\emissions\\input\\mapSample.pbf";
+    private final String input = "src/main/resources/be.kuleuven.xanderpeng.emissions/network/input/GreatLeuven.pbf";
 
     public static void main(String[] args) {
         System.out.println(System.getProperty("user.dir"));
@@ -27,7 +27,7 @@ public class RunCreateBasicNXFromOSM {
                 .build();
 
         Network network = reader.read(input);
-        new NetworkWriter(network).write("D:\\IdeaProjects\\matsim-code-examples-2024\\scenarios\\xander_peng\\emissions\\output\\mapSample.xml");
+        new NetworkWriter(network).write("src/main/resources/be.kuleuven.xanderpeng.emissions/network/output/GreatLeuven.xml");
     }
 
     private void createV2(){
