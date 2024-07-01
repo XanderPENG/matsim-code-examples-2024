@@ -7,4 +7,7 @@ public class utils {
 
     // Set the path to the output network file
     public static String networkOutputDir = "src/main/resources/be.kuleuven.xanderpeng.emissions/network/output/";
+
+    // Set the CRS of Leuven
+    public static String outputCrs = "EPSG:31370";  // lambert 72
 }
