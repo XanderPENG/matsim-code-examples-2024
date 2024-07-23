@@ -1,5 +1,6 @@
 package be.kuleuven.xanderpeng.emissions.network.osmv2;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,23 +9,23 @@ import java.util.Map;
 
  */
 public class OsmTagsAndValueLists {
-    private final Map<String, List<String>> TagsAndValueLists;
+    private final Map<String, List<String>> tagsAndValueLists;
 
     private OsmTagsAndValueLists(Builder builder) {
-        this.TagsAndValueLists = builder.TagsAndValueLists;
+        this.tagsAndValueLists = builder.tagsAndValueLists;
     }
 
     public Map<String, List<String>> getTagsAndValueLists() {
-        return TagsAndValueLists;
+        return tagsAndValueLists;
     }
 
     // Builder class
     public static class Builder {
-        private Map<String, List<String>> TagsAndValueLists;
+        private Map<String, List<String>> tagsAndValueLists = new HashMap<>();
 
         // A method that sets the Map directly
         public Builder setTagsAndValueLists(Map<String, List<String>> tagsAndValueLists) {
-            TagsAndValueLists = tagsAndValueLists;
+            this.tagsAndValueLists = tagsAndValueLists;
             return this;
         }
 
@@ -36,27 +37,27 @@ public class OsmTagsAndValueLists {
         * This method adds/updates list-like values to a specific Tag in the map
          */
         public Builder addTagAndValues(String tag, List<String> valueList) {
-            if (TagsAndValueLists.containsKey(tag)) {
-                List<String> existingValues = TagsAndValueLists.get(tag);
+            if (tagsAndValueLists.containsKey(tag)) {
+                List<String> existingValues = tagsAndValueLists.get(tag);
                 existingValues.addAll(valueList);
                 // Drop duplicates
                List<String> updatedValues = existingValues.stream().distinct().toList();
-                TagsAndValueLists.put(tag, updatedValues);
+                tagsAndValueLists.put(tag, updatedValues);
             } else {
-                TagsAndValueLists.put(tag, valueList);
+                tagsAndValueLists.put(tag, valueList);
             }
             return this;
         }
 
         public Builder addTagAndValuePair(String tag, String value) {
-            if (TagsAndValueLists.containsKey(tag)) {
-                List<String> existingValues = TagsAndValueLists.get(tag);
+            if (tagsAndValueLists.containsKey(tag)) {
+                List<String> existingValues = tagsAndValueLists.get(tag);
                 existingValues.add(value);
                 // Drop duplicates
                 List<String> updatedValues = existingValues.stream().distinct().toList();
-                TagsAndValueLists.put(tag, updatedValues);
+                tagsAndValueLists.put(tag, updatedValues);
             } else {
-                TagsAndValueLists.put(tag, List.of(value));
+                tagsAndValueLists.put(tag, List.of(value));
             }
             return this;
         }
