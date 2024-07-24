@@ -5,17 +5,25 @@ import de.topobyte.osm4j.core.model.iface.OsmRelation;
 import de.topobyte.osm4j.core.model.iface.OsmWay;
 
 import java.util.Map;
+import java.util.Set;
 
 public class OsmElementHandlerImpl implements OsmElementHandler {
 
 
     @Override
     public void handleNode(OsmNode node, Map<Long, OsmNode> nodes) {
-
+        nodes.put(node.getId(), node);
     }
 
     @Override
-    public void handleWay(OsmWay way, Map<Long, OsmWay> ways, Map<Long, String> wayModes) {
+    public void handleWay(OsmWay way, Map<Long, OsmWay> ways, Map<Long, Set<String>> wayModes) {
+        if (ways.isEmpty()) {
+            ways.put(way.getId(), way);
+            wayModes.put(way.getId(), Set.of("car"));
+        } else {
+            ;
+        }
+
 
     }
 
@@ -28,4 +36,7 @@ public class OsmElementHandlerImpl implements OsmElementHandler {
     public void complete() {
 
     }
+
+
+
 }

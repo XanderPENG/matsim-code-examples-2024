@@ -5,6 +5,7 @@ import de.topobyte.osm4j.core.model.iface.OsmRelation;
 import de.topobyte.osm4j.core.model.iface.OsmWay;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This is an interface for customizing the handling OSM elements.
@@ -12,7 +13,7 @@ import java.util.Map;
 public interface OsmElementHandler {
     void handleNode(OsmNode node, Map<Long, OsmNode> nodes);
 
-    void handleWay(OsmWay way, Map<Long, OsmWay> ways, Map<Long, String> wayModes);
+    void handleWay(OsmWay way, Map<Long, OsmWay> ways, Map<Long, Set<String>> wayModes);
 
     void handleRelation(OsmRelation relation, Map<Long, OsmRelation> relations);
 
