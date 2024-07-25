@@ -13,7 +13,7 @@ import java.util.Set;
 public interface OsmElementHandler {
     void handleNode(OsmNode node, Map<Long, OsmNode> nodes);
 
-    void handleWay(OsmWay way, Map<Long, OsmWay> ways, Map<Long, Set<String>> wayModes);
+    void handleWay(OsmWay way, Map<Long, OsmWay> ways, Map<Long, Set<String>> wayModes, TransportModeTagMapper transportModeTagMapper);
 
     void handleRelation(OsmRelation relation, Map<Long, OsmRelation> relations);
 

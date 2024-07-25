@@ -3,8 +3,7 @@ package be.kuleuven.xanderpeng.emissions.network.osmv2;
 
 import org.matsim.api.core.v01.TransportMode;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TransportModeTagMapper {
     /*
@@ -21,41 +20,48 @@ public class TransportModeTagMapper {
 //    public static final String TRUCK = TransportMode.truck;
 //    public static final String DRT = TransportMode.drt;
 
-    private final Map<String, OsmTagsAndValueLists> carMap;
-    private final Map<String, OsmTagsAndValueLists> bikeMap;
-    private final Map<String, OsmTagsAndValueLists> walkMap;
-    private final Map<String, OsmTagsAndValueLists> ptMap;
+    private  final Map<String, OsmTagsAndValueLists> transportModeTagMapper;
+
 
     private TransportModeTagMapper(Builder builder){
-        carMap = builder.carMap;
-        bikeMap = builder.bikeMap;
-        walkMap = builder.walkMap;
-        ptMap= builder.ptMap;
+
+        this.transportModeTagMapper = builder.transportModeTagMapper;
     }
 
+    public Map<String, OsmTagsAndValueLists> getTransportModeTagMapper() {
+        return transportModeTagMapper;
+    }
+
+    public Set<String> matchTransportMode(Map<String, String> tagAndValuePairs){
+        Set <String> matchedModes = new HashSet<>();
+
+        for (Map.Entry<String, OsmTagsAndValueLists> modeEntry : transportModeTagMapper.entrySet()){
+            // Get current transport mode and the corresponding tags-valueLists
+            String mode = modeEntry.getKey();
+            OsmTagsAndValueLists tagValueLists = modeEntry.getValue();
+            Map<String, List<String>> tagAndValueLists = tagValueLists.getTagsAndValueLists();
+            // check if the tag-value pairs match the current transport mode
+            for (Map.Entry<String, String> tagValuePair: tagAndValuePairs.entrySet()){
+                String tag = tagValuePair.getKey();
+                String value = tagValuePair.getValue();
+                if (tagAndValueLists.containsKey(tag) && tagAndValueLists.get(tag).contains(value)){
+                    matchedModes.add(mode);
+                }
+            }
+
+        }
+        return matchedModes;
+    }
+
+
+
+
     private static class Builder{
-        private final Map<String, OsmTagsAndValueLists> carMap = new HashMap<>();
-        private final Map<String, OsmTagsAndValueLists> bikeMap = new HashMap<>();
-        private final Map<String, OsmTagsAndValueLists> walkMap = new HashMap<>();
-        private final Map<String, OsmTagsAndValueLists> ptMap = new HashMap<>();
 
-        public Builder addCarMap(String key, OsmTagsAndValueLists value){
-            carMap.put(key, value);
-            return this;
-        }
+        private final Map<String, OsmTagsAndValueLists> transportModeTagMapper = new HashMap<>();
 
-        public Builder addBikeMap(String key, OsmTagsAndValueLists value){
-            bikeMap.put(key, value);
-            return this;
-        }
-
-        public Builder addWalkMap(String key, OsmTagsAndValueLists value){
-            walkMap.put(key, value);
-            return this;
-        }
-
-        public Builder addPtMap(String key, OsmTagsAndValueLists value){
-            ptMap.put(key, value);
+        public Builder addModeAndTagValueLists(String mode, OsmTagsAndValueLists tagValueLists){
+            transportModeTagMapper.put(mode, tagValueLists);
             return this;
         }
 

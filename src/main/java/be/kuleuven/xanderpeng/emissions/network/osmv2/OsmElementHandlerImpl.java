@@ -3,6 +3,7 @@ package be.kuleuven.xanderpeng.emissions.network.osmv2;
 import de.topobyte.osm4j.core.model.iface.OsmNode;
 import de.topobyte.osm4j.core.model.iface.OsmRelation;
 import de.topobyte.osm4j.core.model.iface.OsmWay;
+import de.topobyte.osm4j.core.model.util.OsmModelUtil;
 
 import java.util.Map;
 import java.util.Set;
@@ -16,16 +17,15 @@ public class OsmElementHandlerImpl implements OsmElementHandler {
     }
 
     @Override
-    public void handleWay(OsmWay way, Map<Long, OsmWay> ways, Map<Long, Set<String>> wayModes) {
-        if (ways.isEmpty()) {
+    public void handleWay(OsmWay way, Map<Long, OsmWay> ways, Map<Long, Set<String>> wayModes, TransportModeTagMapper transportModeTagMapper){
+
+        Map<String, String> tagValuePairs = OsmModelUtil.getTagsAsMap(way);
+        Set <String> allowedModes = transportModeTagMapper.matchTransportMode(tagValuePairs);
+        if (!allowedModes.isEmpty()) {
             ways.put(way.getId(), way);
-            wayModes.put(way.getId(), Set.of("car"));
-        } else {
-            ;
+            wayModes.put(way.getId(), allowedModes);
+            }
         }
-
-
-    }
 
     @Override
     public void handleRelation(OsmRelation relation, Map<Long, OsmRelation> relations) {
