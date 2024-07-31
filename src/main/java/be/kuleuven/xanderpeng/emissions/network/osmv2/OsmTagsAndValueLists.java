@@ -20,7 +20,7 @@ public class OsmTagsAndValueLists {
     }
 
     // Builder class
-    private static class Builder {
+    public static class Builder {
         private Map<String, List<String>> tagsAndValueLists = new HashMap<>();
 
         // A method that sets the Map directly

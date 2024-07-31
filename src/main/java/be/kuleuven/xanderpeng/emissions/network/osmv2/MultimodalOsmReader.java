@@ -89,6 +89,15 @@ public class MultimodalOsmReader implements OsmHandler {
             PbfReader reader = new PbfReader(inputStream, false);
             reader.setHandler(this);
             reader.read();
+            this.splitWayAtIntersection(networkFactory, network);
+            // Add processed nodes and ways to the network
+            for (Node node : processedNodes.values()){
+
+                network.addNode(node);
+            }
+            for (Link link : processedWays.values()){
+                network.addLink(link);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -114,7 +123,7 @@ public class MultimodalOsmReader implements OsmHandler {
 
     }
 
-    private void splitWayAtIntersection(NetworkFactory networkFactory){
+    private void splitWayAtIntersection(NetworkFactory networkFactory, Network network){
         // Count the number of times each node is used
         Map<Long, Integer> nodeRefCount = new HashMap<>();
         for (OsmWay way : ways.values()){
@@ -130,49 +139,143 @@ public class MultimodalOsmReader implements OsmHandler {
         }
         // Split the way at intersections (if applicable)
         for (OsmWay way : ways.values()){
-
-
+            Set <String> reversedWayModes = onewayHandler(way);
+            boolean isOneway = reversedWayModes.isEmpty();
+            Node startNode;
 
             int nNodes = way.getNumberOfNodes();
             // Get the Coord of start node of the way, and transform it
             Coord startCoord = new Coord(nodes.get(way.getNodeId(0)).getLongitude(), nodes.get(way.getNodeId(0)).getLatitude());
             Coord transformedStartCoord = transformation.transform(startCoord);
 
-            // Create a MATSim node at the start of the way
-            Node fromNode = networkFactory.createNode(Id.createNodeId(way.getNodeId(0)), transformedStartCoord);
+            if (!processedNodes.containsKey(Id.createNodeId(way.getNodeId(0)))){
+                // Create a MATSim node at the start of the way
+                startNode = networkFactory.createNode(Id.createNodeId(way.getNodeId(0)), transformedStartCoord);
+                // Add the node to the processedNodes
+                processedNodes.put(startNode.getId(), startNode);
+            } else {
+                startNode = processedNodes.get(Id.createNodeId(way.getNodeId(0)));
+            }
 
+            int [] segmentIndex = new int[] {1};
+            Node [] fromNodeContainer = new Node[]{startNode};
+//            Node fromNode = startNode;
+            for (int i = 1; i < nNodes-1; i++){
 
-            for (int i = 1; i < nNodes; i++){
                 long nodeId = way.getNodeId(i);
+                // Split the way at the intersection
                 if (nodeRefCount.get(nodeId) > 1){
-                    // Split the way at the intersection
-                    // Firstly create a MATSim node at the intersection
-                    Coord intersectionNodeCoord = new Coord(nodes.get(nodeId).getLongitude(), nodes.get(nodeId).getLatitude());
-                    Coord transformedIntersectionNodeCoord = transformation.transform(intersectionNodeCoord);
-                    Node intersectionNode = networkFactory.createNode(Id.createNodeId(nodeId), transformedIntersectionNodeCoord);
+                    // Firstly create a MATSim node at the intersection (if needed)
+                    Node  intersectionNode;
+                    if (processedNodes.containsKey(Id.createNodeId(nodeId))){
+                        // If the node is already created, get the node
+                        intersectionNode = processedNodes.get(Id.createNodeId(nodeId));
+                    } else {
+                        // If the node is not created, create the node
+                        Coord intersectionNodeCoord = new Coord(nodes.get(nodeId).getLongitude(), nodes.get(nodeId).getLatitude());
+                        Coord transformedIntersectionNodeCoord = transformation.transform(intersectionNodeCoord);
+                        intersectionNode = networkFactory.createNode(Id.createNodeId(nodeId), transformedIntersectionNodeCoord);
+                        // Add the node to the processedNodes
+                        processedNodes.put(intersectionNode.getId(), intersectionNode);
+                    }
+                    // Add the link segment to the matsim network
+                    Link linkSeg = networkFactory.createLink(Id.createLinkId(way.getId() + "_f" + segmentIndex[0]),
+                            fromNodeContainer[0], intersectionNode);
+                    // Add the attributes
+                    linkSeg.getAttributes().putAttribute("osm_id", way.getId());
+                    // TODO: This can be improved by match all "cycleway"-related tags, and reclassified to [share, exclusive, advisory, separated, etc.
+                    linkSeg.getAttributes().putAttribute("cycleway_type", OsmModelUtil.getTagsAsMap(way).get("cycleway") == null ? "none" : OsmModelUtil.getTagsAsMap(way).get("cycleway"));
+                    linkSeg.getAttributes().putAttribute("cycleway_width", OsmModelUtil.getTagsAsMap(way).get("cycleway:width") == null ? 2.3 : Float.parseFloat(OsmModelUtil.getTagsAsMap(way).get("cycleway:width")));
+                    // Add allowed modes
+                    linkSeg.setAllowedModes(wayModes.get(way.getId()));
+                    // Add the link to the processedWays
+                    processedWays.put(linkSeg.getId(), linkSeg);
+                    /*
+                        Add a reverse link if the way is not oneway
+                     */
+                    if (!isOneway){
+                        Link reverseLink = networkFactory.createLink(Id.createLinkId(way.getId() + "_r" + segmentIndex[0]),
+                                intersectionNode, fromNodeContainer[0]);
+                        // Add the attributes
+                        reverseLink.getAttributes().putAttribute("osm_id", way.getId());
+                        reverseLink.getAttributes().putAttribute("cycleway_type", OsmModelUtil.getTagsAsMap(way).get("cycleway") == null ? "none" : OsmModelUtil.getTagsAsMap(way).get("cycleway"));
+                        reverseLink.getAttributes().putAttribute("cycleway_width", OsmModelUtil.getTagsAsMap(way).get("cycleway:width") == null ? 2.3 : Float.parseFloat(OsmModelUtil.getTagsAsMap(way).get("cycleway:width")));
+                        // Add allowed modes
+                        reverseLink.setAllowedModes(reversedWayModes);
+                        // Add the reverse link to the processedWays
+                        processedWays.put(reverseLink.getId(), reverseLink);
+                    }
 
+                    // Update the fromNode
+                    fromNodeContainer[0] = intersectionNode;
+                    segmentIndex[0] += 1;
                 }
             }
-        }
 
+            // Add the end node (if needed)
+            Node endNode;
+            if (processedNodes.containsKey(Id.createNodeId(way.getNodeId(nNodes - 1)))){
+                endNode = processedNodes.get(Id.createNodeId(way.getNodeId(nNodes - 1)));
+            } else {
+                Coord endCoord = new Coord(nodes.get(way.getNodeId(nNodes - 1)).getLongitude(), nodes.get(way.getNodeId(nNodes - 1)).getLatitude());
+                Coord transformedEndCoord = transformation.transform(endCoord);
+                endNode = networkFactory.createNode(Id.createNodeId(way.getNodeId(nNodes - 1)), transformedEndCoord);
+                processedNodes.put(endNode.getId(), endNode);
+            }
+            // Add the last link segment
+            Link lastLinkSeg = networkFactory.createLink(Id.createLinkId(way.getId() + "_f" + segmentIndex[0]),
+                    fromNodeContainer[0], endNode);
+            // Add the attributes
+            lastLinkSeg.getAttributes().putAttribute("osm_id", way.getId());
+            lastLinkSeg.getAttributes().putAttribute("cycleway_type", OsmModelUtil.getTagsAsMap(way).get("cycleway") == null ? "none" : OsmModelUtil.getTagsAsMap(way).get("cycleway"));
+            lastLinkSeg.getAttributes().putAttribute("cycleway_width", OsmModelUtil.getTagsAsMap(way).get("cycleway:width") == null ? 2.3 : Float.parseFloat(OsmModelUtil.getTagsAsMap(way).get("cycleway:width")));
+            // Add allowed modes
+            lastLinkSeg.setAllowedModes(wayModes.get(way.getId()));
+            // Add the link to the processedWays
+            processedWays.put(lastLinkSeg.getId(), lastLinkSeg);
+            /*
+                Add a reverse link if the way is not oneway
+             */
+            if (!isOneway){
+                Link reverseLink = networkFactory.createLink(Id.createLinkId(way.getId() + "_r" + segmentIndex[0]),
+                        endNode, fromNodeContainer[0]);
+                // Add the attributes
+                reverseLink.getAttributes().putAttribute("osm_id", way.getId());
+                reverseLink.getAttributes().putAttribute("cycleway_type", OsmModelUtil.getTagsAsMap(way).get("cycleway") == null ? "none" : OsmModelUtil.getTagsAsMap(way).get("cycleway"));
+                reverseLink.getAttributes().putAttribute("cycleway_width", OsmModelUtil.getTagsAsMap(way).get("cycleway:width") == null ? 2.3 : Float.parseFloat(OsmModelUtil.getTagsAsMap(way).get("cycleway:width")));
+                // Add allowed modes
+                reverseLink.setAllowedModes(reversedWayModes);
+                // Add the reverse link to the processedWays
+                processedWays.put(reverseLink.getId(), reverseLink);
+
+            }
+        }
     }
 
-    private List<String> isOneway(OsmWay way){
+    private Set<String> onewayHandler(OsmWay way){
         Map<String, String> tags = OsmModelUtil.getTagsAsMap(way);
-        List<String> reversedWayTypes = new ArrayList<>();
-        if (tags.containsKey("oneway") && "no".equals(tags.get("oneway"))){
-            reversedWayTypes.add(TransportModeTagMapper.CAR);
-            reversedWayTypes.add(TransportModeTagMapper.BIKE);
-        } else if (tags.containsKey("oneway:bicycle") && "no".equals(tags.get("oneway:bicycle"))){
-            reversedWayTypes.add(TransportModeTagMapper.BIKE);
-        }
+        Set<String> reversedWayTypes = new HashSet<>();
+        List <String> diWayValues = List.of("no", "0", "false");  // common values for two-way streets
 
+        if (tags.containsKey("oneway") && diWayValues.contains(tags.get("oneway")) ){
+            reversedWayTypes.addAll(wayModes.get(way.getId()));
+//            reversedWayTypes.add(TransportModeTagMapper.CAR);
+//            reversedWayTypes.add(TransportModeTagMapper.BIKE);
+//            reversedWayTypes.add(TransportModeTagMapper.WALK);
+        } else if (tags.containsKey("oneway:bicycle") && diWayValues.contains(tags.get("oneway:bicycle"))){
+            reversedWayTypes.add(TransportModeTagMapper.BIKE);
+        }else if (tags.containsKey("oneway:foot") && diWayValues.contains(tags.get("oneway:foot"))
+                ||  (tags.containsKey("sidewalk") && "both".equals(tags.get("sidewalk")))
+                    ) {
+            reversedWayTypes.add(TransportModeTagMapper.WALK);
+        }
         return reversedWayTypes;
     }
 
 
 
-    private static class Builder {
+
+    public static class Builder {
 
         private OsmElementHandler elementHandler;
         private String inputFilePath;

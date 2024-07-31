@@ -56,7 +56,7 @@ public class TransportModeTagMapper {
 
 
 
-    private static class Builder{
+    public static class Builder{
 
         private final Map<String, OsmTagsAndValueLists> transportModeTagMapper = new HashMap<>();
 
