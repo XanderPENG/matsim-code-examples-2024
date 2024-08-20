@@ -9,7 +9,7 @@ import be.kuleuven.xanderpeng.emissions.networkV2.core.NetworkElement;
 import org.matsim.api.core.v01.Id;
 
 public class NetworkElementTest {
-    private final static Logger LOG = LogManager.getLogger(OsmTagsAndValueListsTest.class);
+    private final static Logger LOG = LogManager.getLogger(NetworkElementTest.class);
 
     @Test
     public void testNode(){
