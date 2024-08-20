@@ -4,12 +4,15 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
+import java.util.Set;
+
 public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
 
     public static final String GROUP_NAME = "multimodalNetworkConverter";
 
     // Global parameters
-    private String FILE_TYPE = "fileType";
+    @Parameter
+    public String FILE_TYPE = "osm";
 
 
     private String inputNetworkFile;
@@ -29,20 +32,16 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         this.inputNetworkFile = inputNetworkFile;
     }
 
-    //write getter and setter for FILE_TYPE
-    @StringGetter("FILE_TYPE")
-    public String getFILE_TYPE() {
-        return FILE_TYPE;
-    }
-
-    @StringSetter("FILE_TYPE")
-    public void setFILE_TYPE(String FILE_TYPE) {
-        this.FILE_TYPE = FILE_TYPE;
-    }
 
     // Write config.xml file
     public void writeConfigFile(String path) {
         Config defaultConfig = ConfigUtils.createConfig();
+        // delete all default modules
+        Set<String> defaultModules = Set.copyOf(defaultConfig.getModules().keySet());
+        for (String module : defaultModules) {
+            defaultConfig.removeModule(module);
+        }
+        // Add the current module into the config
         defaultConfig.addModule(this);
         ConfigUtils.writeConfig(defaultConfig, path+"multimodalNetworkConverterConfig.xml");
     }

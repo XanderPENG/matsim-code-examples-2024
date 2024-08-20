@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import be.kuleuven.xanderpeng.emissions.networkV2.tools.utils;
 import be.kuleuven.xanderpeng.emissions.networkV2.config.NetworkConverterConfigGroup;
 
 public class NetworkConverterConfigTest {
@@ -15,9 +16,9 @@ public class NetworkConverterConfigTest {
         LOG.info("Testing NetworkConverterConfig");
 
         NetworkConverterConfigGroup networkConverterConfigGroup = new NetworkConverterConfigGroup();
-        networkConverterConfigGroup.setInputNetworkFile("src/main/resources/be.kuleuven.xanderpeng.emissions/network/input/mapSample.pbf");
-        networkConverterConfigGroup.setFILE_TYPE("fileType");
-        networkConverterConfigGroup.writeConfigFile("src/main/resources/be.kuleuven.xanderpeng.emissions/network/output/");
+        networkConverterConfigGroup.setInputNetworkFile(utils.aldiNetworkInput);
+
+        networkConverterConfigGroup.writeConfigFile(utils.networkOutputDir);
 
         LOG.info("test passed");
     }
