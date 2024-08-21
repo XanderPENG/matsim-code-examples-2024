@@ -8,6 +8,7 @@ import java.util.Set;
 public class TransMode {
     private final Mode mode;
     private final ModeKeyValueMapping keyValueMapping;
+
     public TransMode(Mode mode, ModeKeyValueMapping keyValueMapping) {
         this.mode = mode;
         this.keyValueMapping = keyValueMapping;
@@ -17,7 +18,7 @@ public class TransMode {
         return mode;
     }
 
-    public ModeKeyValueMapping getKeyValueMapping() {
+    public ModeKeyValueMapping getModeKeyValueMapping() {
         return keyValueMapping;
     }
 
@@ -47,22 +48,30 @@ public class TransMode {
     }
 
     public enum Mode {
-        CAR(TransportMode.car, 130 / 3.6, 0.142),
-        PT(TransportMode.pt, 40 / 3.6, 0.142),
-        TRAIN(TransportMode.train, 100 / 3.6, 0.142),
-        BIKE(TransportMode.bike, 20 / 3.6, 0),
-        WALK(TransportMode.walk, 5 / 3.6, 0),
-        SHIP(TransportMode.ship, 20 / 3.6, 0.142),
-        OTHER("other", 20 / 3.6, 0.142);
+        CAR(TransportMode.car, 130 / 3.6, 0.242, 1800, 3.5, 2),
+        PT(TransportMode.pt, 40 / 3.6, 0.142, 1200, 3.5, 1),
+        TRAIN(TransportMode.train, 100 / 3.6, 0.542, 100, 5, 1),
+        BIKE(TransportMode.bike, 20 / 3.6, 0, 2000, 2, 1),
+        WALK(TransportMode.walk, 5 / 3.6, 0, 5000, 1, 1),
+        SHIP(TransportMode.ship, 20 / 3.6, 0.142, 1000, 10, 1),
+        OTHER("other", 20 / 3.6, 0.142, 1000, 3.5, 1);
 
         public final String name;
         public final double defaultMaxSpeed;
         public final double defaultEmissionFactor;
+        public final double defaultLaneCapacity;
+        public final double defaultLaneWidth;
+        public final double defaultLanes;
 
-        Mode(String name, double defaultMaxSpeed, double defaultEmissionFactor) {
+
+        Mode(String name, double defaultMaxSpeed, double defaultEmissionFactor,
+             double defaultLaneCapacity, double defaultLaneWidth, double defaultLanes) {
             this.name = name;
             this.defaultMaxSpeed = defaultMaxSpeed;
             this.defaultEmissionFactor = defaultEmissionFactor;
+            this.defaultLaneCapacity = defaultLaneCapacity;
+            this.defaultLaneWidth = defaultLaneWidth;
+            this.defaultLanes = defaultLanes;
         }
     }
 

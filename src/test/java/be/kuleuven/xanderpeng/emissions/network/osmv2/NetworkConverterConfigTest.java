@@ -16,9 +16,9 @@ public class NetworkConverterConfigTest {
         LOG.info("Testing NetworkConverterConfig");
 
         NetworkConverterConfigGroup networkConverterConfigGroup = new NetworkConverterConfigGroup();
-        networkConverterConfigGroup.setInputNetworkFile(utils.aldiNetworkInput);
+        networkConverterConfigGroup.INPUT_NETWORK_FILE = utils.aldiNetworkInput;
 
-        networkConverterConfigGroup.writeConfigFile(utils.networkOutputDir);
+        networkConverterConfigGroup.writeConfigFile(utils.networkOutputDir + "multimodalNetworkConverterConfig.xml");
 
         LOG.info("test passed");
     }
