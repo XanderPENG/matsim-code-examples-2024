@@ -58,10 +58,10 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         NetworkConverterConfigGroup config = new NetworkConverterConfigGroup();
         config.FILE_TYPE = "osm";
         config.INPUT_CRS = "EPSG:4326";
-        config.INPUT_NETWORK_FILE = "path/to/input/network/file";
+        config.INPUT_NETWORK_FILE = "yours/input/network/file";
         config.KEEP_DETAILED_LINK = true;
         config.KEEP_UNDEFINED_LINK = true;
-        config.OUTPUT_NETWORK_FILE = "path/to/output/network/file";
+        config.OUTPUT_NETWORK_FILE = "yours/output/network/file";
         config.OUTPUT_SHP_FILE = "NA";
         config.OUTPUT_GEOJSON_FILE = "NA";
         config.ROUTABLE_NETWORK = true;
