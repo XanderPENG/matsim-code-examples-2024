@@ -3,9 +3,7 @@ package be.kuleuven.xanderpeng.emissions.networkV2.core;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Identifiable;
-import org.matsim.api.core.v01.network.Node;
-import org.matsim.api.core.v01.network.Link;
+
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +23,19 @@ public final class NetworkElement {
     public interface Element{
         String getType();
         Id<?> getId();
+
+        // A default method to convert the id (which might be a string or a number) to a string
+        default <T> String id2String(T id){
+            boolean isNumber = id instanceof Number;
+            if (id instanceof String){
+                return (String)id;
+            }else if (isNumber){
+                return String.valueOf(id);
+            }else{
+                throw new IllegalArgumentException("The id should be either a string or a number.");
+            }
+
+        }
     }
 
     public static class Node implements Element{
@@ -38,13 +49,14 @@ public final class NetworkElement {
         * 2 different constructors for different types of coordinate and id,
         * e.g., the id can be either a string or a long
          */
+
         public <T> Node(T id, Coord coord){
-            this.id = Id.create((String)id, Node.class);
+            this.id = Id.create(id2String(id), Node.class);
             this.coord = coord;
         }
 
         public <T> Node(T id, double...coords){
-            this.id = Id.create((String)id, Node.class);
+            this.id = Id.create(id2String(id), Node.class);
             if(coords.length == 2){
                 this.coord = new Coord(coords[0], coords[1]);
             }else if(coords.length == 3){
@@ -54,10 +66,12 @@ public final class NetworkElement {
             }
         }
 
+        @Override
         public String getType(){
             return "Node";
         }
 
+        @Override
         public Id<Node> getId(){
             return id;
         }
@@ -107,12 +121,8 @@ public final class NetworkElement {
         private final Node toNode;
         private final Map<Id<Node>, Node> composedNodes = new HashMap<>(); // nodes that are composed in this link
         private final Set<String> allowedModes = new HashSet<>(); // allowed modes for this link
+        private final Map<String, String> keyValuePairs = new HashMap<>(); // key-value pairs for this link
 
-        public <T>Link(T id, Node fromNode, Node toNode){
-            this.id = Id.create((String)id, Link.class);
-            this.fromNode = fromNode;
-            this.toNode = toNode;
-        }
 
         public String getType(){
             return "Link";
@@ -138,6 +148,13 @@ public final class NetworkElement {
             return allowedModes;
         }
 
+
+        public <T>Link(T id, Node fromNode, Node toNode){
+            this.id = Id.create(id2String(id), Link.class);
+            this.fromNode = fromNode;
+            this.toNode = toNode;
+        }
+
         public void addComposedNode(Node node){
             composedNodes.put(node.getId(), node);
         }
@@ -154,6 +171,18 @@ public final class NetworkElement {
 
         public void addAllowedModes(Set<String> modes){
             allowedModes.addAll(modes);
+        }
+
+        public Map<String, String> getKeyValuePairs(){
+            return keyValuePairs;
+        }
+
+        public void addKeyValuePair(String key, String value){
+            keyValuePairs.put(key, value);
+        }
+
+        public void setKeyValuePairs(Map<String, String> keyValuePairs){
+            this.keyValuePairs.putAll(keyValuePairs);
         }
 
         @Override

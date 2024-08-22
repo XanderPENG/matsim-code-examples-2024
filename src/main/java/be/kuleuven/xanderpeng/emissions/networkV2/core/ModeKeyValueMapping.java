@@ -9,7 +9,7 @@ import java.util.Set;
  * This class is used to store the key-value mapping for different modes.
  */
 
-public class ModeKeyValueMapping {
+public final class ModeKeyValueMapping {
 
     private final TransMode.Mode mode;
     private final Set<Map<String, String>> keyValueMapping;

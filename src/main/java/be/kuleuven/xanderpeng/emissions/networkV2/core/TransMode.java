@@ -5,7 +5,7 @@ import org.matsim.api.core.v01.TransportMode;
 import java.util.Map;
 import java.util.Set;
 
-public class TransMode {
+public final class TransMode {
     private final Mode mode;
     private final ModeKeyValueMapping keyValueMapping;
 
