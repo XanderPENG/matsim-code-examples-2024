@@ -8,12 +8,15 @@ import org.matsim.core.config.ReflectiveConfigGroup;
 import be.kuleuven.xanderpeng.emissions.networkV2.core.TransMode;
 import be.kuleuven.xanderpeng.emissions.networkV2.core.ModeKeyValueMapping;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
 
     public static final String GROUP_NAME = "multimodalNetworkConverter";
+    private final Map<String, ModeParamSet> modeParamSets = new HashMap<>();
 
     // Global parameters
     @Parameter
@@ -53,6 +56,10 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         super(GROUP_NAME);
     }
 
+    public Map<String, ModeParamSet> getModeParamSets() {
+        return modeParamSets;
+    }
+
     // create a default NetworkConverterConfigGroup
     public static NetworkConverterConfigGroup createDefaultConfig() {
         NetworkConverterConfigGroup config = new NetworkConverterConfigGroup();
@@ -81,6 +88,38 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         return config;
     }
 
+    // Load config file
+    public static NetworkConverterConfigGroup loadConfigFile(String filename){
+        Config config = ConfigUtils.loadConfig(filename);
+        NetworkConverterConfigGroup configGroup = ConfigUtils.addOrGetModule(config, NetworkConverterConfigGroup.GROUP_NAME, NetworkConverterConfigGroup.class);
+        configGroup.readParameterSets();
+        return configGroup;
+    }
+
+    public void readParameterSets(){
+        Collection<? extends ConfigGroup> groups = this.getParameterSets(ModeParamSet.GROUP_NAME);
+        if (groups == null) {
+            return;
+        }
+
+        for (ConfigGroup group : groups) {
+            if (group instanceof ModeParamSet modeParamSet) {
+                modeParamSets.put(modeParamSet.MODE_NAME, modeParamSet);
+            } else {
+                // try to cast the group to ModeParamSet
+                ModeParamSet modeParamSet = new ModeParamSet();
+                Map<String, String> groupParams = group.getParams();
+                modeParamSet.setModeName(groupParams.get("MODE_NAME"));
+                modeParamSet.setFreeSpeed(groupParams.get("FREE_SPEED"));
+                modeParamSet.setEmissionFactor(groupParams.get("EMISSION_FACTOR"));
+                modeParamSet.setLaneCapacity(groupParams.get("LANE_CAPACITY"));
+                modeParamSet.setLaneWidth(groupParams.get("LANE_WIDTH"));
+                modeParamSet.setLanes(groupParams.get("LANES"));
+                modeParamSet.setKeyValMappingString(groupParams.get("KEY_VALUE_MAPPING"));
+                modeParamSets.put(modeParamSet.MODE_NAME, modeParamSet);
+            }
+        }
+    }
 
 
     // Write config.xml file
