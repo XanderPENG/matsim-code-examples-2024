@@ -13,88 +13,28 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
 
     public static final String GROUP_NAME = "modeParamSet";
 
-
+    @Parameter
     @Comment("The name of the mode, which should be one of the following: \n" +
              "\t\t\t[car, pt, train, bike, walk, ship, other.]. see @TransMode.Mode for more details.")
     public String MODE_NAME;
 
-
+    @Parameter
     public double FREE_SPEED;
 
-
+    @Parameter
     public double EMISSION_FACTOR;
 
-
+    @Parameter
     public double LANE_CAPACITY;
 
-
+    @Parameter
     public double LANE_WIDTH;
 
+    @Parameter
     public double LANES;
-
 
     @Comment("The key-value mapping for the specific mode")
     public Set<Map<String, String>> KEY_VALUE_MAPPING = new HashSet<>();
-
-    @StringGetter("MODE_NAME")
-    public String getModeName() {
-        return MODE_NAME;
-    }
-
-    @StringSetter("MODE_NAME")
-    public void setModeName(String modeName) {
-        this.MODE_NAME = modeName;
-    }
-
-    @StringGetter("FREE_SPEED")
-    public String getFreeSpeed() {
-        return String.valueOf(FREE_SPEED);
-    }
-
-    @StringSetter("FREE_SPEED")
-    public void setFreeSpeed(String freeSpeed) {
-        this.FREE_SPEED = Double.parseDouble(freeSpeed);
-    }
-
-    @StringGetter("EMISSION_FACTOR")
-    public String getEmissionFactor() {
-        return String.valueOf(EMISSION_FACTOR);
-    }
-
-    @StringSetter("EMISSION_FACTOR")
-    public void setEmissionFactor(String emissionFactor) {
-        this.EMISSION_FACTOR = Double.parseDouble(emissionFactor);
-    }
-
-    @StringGetter("LANE_CAPACITY")
-    public String getLaneCapacity() {
-        return String.valueOf(LANE_CAPACITY);
-    }
-
-    @StringSetter("LANE_CAPACITY")
-    public void setLaneCapacity(String laneCapacity) {
-        this.LANE_CAPACITY = Double.parseDouble(laneCapacity);
-    }
-
-    @StringGetter("LANE_WIDTH")
-    public String getLaneWidth() {
-        return String.valueOf(LANE_WIDTH);
-    }
-
-    @StringSetter("LANE_WIDTH")
-    public void setLaneWidth(String laneWidth) {
-        this.LANE_WIDTH = Double.parseDouble(laneWidth);
-    }
-
-    @StringGetter("LANES")
-    public String getLanes() {
-        return String.valueOf(LANES);
-    }
-
-    @StringSetter("LANES")
-    public void setLanes(String lanes) {
-        this.LANES = Double.parseDouble(lanes);
-    }
 
     // @StringGetter and @StringSetter for the KEY_VALUE_MAPPING
     @StringGetter("KEY_VALUE_MAPPING")

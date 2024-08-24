@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import be.kuleuven.xanderpeng.emissions.networkV2.readers.OsmReader;
-import be.kuleuven.xanderpeng.emissions.networkV2.tools.utils;
+import be.kuleuven.xanderpeng.emissions.networkV2.tools.Utils;
 
 import java.io.IOException;
 
@@ -17,7 +17,7 @@ public class OsmReaderTest {
     public void testRead() throws IOException {
         LOG.info("Testing OsmReader");
         OsmReader reader = new OsmReader();
-        reader.read(utils.aldiNetworkInput);
+        reader.read(Utils.aldiNetworkInput);
         Assertions.assertFalse(reader.getRawNodes().isEmpty());
 
         reader.getRawNodes().forEach((k, v) -> {

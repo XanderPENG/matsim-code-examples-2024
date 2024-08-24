@@ -1,6 +1,7 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.readers;
 
 import be.kuleuven.xanderpeng.emissions.networkV2.core.NetworkElement;
+import be.kuleuven.xanderpeng.emissions.networkV2.tools.Utils;
 import de.topobyte.osm4j.core.access.OsmHandler;
 import de.topobyte.osm4j.core.model.iface.OsmBounds;
 import de.topobyte.osm4j.core.model.iface.OsmNode;
@@ -17,11 +18,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class OsmReader implements OsmHandler, Reader<Long> {
+public class OsmReader implements OsmHandler, Reader {
 
     // The raw nodes and links from the OSM file
-    private final Map<Long, NetworkElement.Node> rawNodes = new HashMap<>();
-    private final Map<Long, NetworkElement.Link> rawLinks = new HashMap<>();
+    private final Map<String, NetworkElement.Node> rawNodes = new HashMap<>();
+    private final Map<String, NetworkElement.Link> rawLinks = new HashMap<>();
 
     public OsmReader() {
     }
@@ -30,7 +31,7 @@ public class OsmReader implements OsmHandler, Reader<Long> {
     private void handleNode(OsmNode osmNode){
         // Convert the OsmNode to NetworkElement.Node
         NetworkElement.Node rawNode = new NetworkElement.Node(osmNode.getId(), osmNode.getLongitude(), osmNode.getLatitude());
-        rawNodes.put(osmNode.getId(), rawNode);
+        rawNodes.put(Utils.id2String(osmNode.getId()), rawNode);
     }
 
     // Convert the OsmWay to NetworkElement.Link
@@ -45,18 +46,18 @@ public class OsmReader implements OsmHandler, Reader<Long> {
         }
         // Create the link
         NetworkElement.Link rawLink = new NetworkElement.Link(osmWay.getId(),
-                rawNodes.get(osmWay.getNodeId(0)), rawNodes.get(osmWay.getNodeId(numNodes-1)));
+                rawNodes.get(Utils.id2String(osmWay.getNodeId(0))), rawNodes.get(Utils.id2String(osmWay.getNodeId(numNodes-1))));
 
         // Add the composed nodes to the link if there are more than 2 nodes
         if (nodeIds.size() > 2) {
             // filter out the first and last node
             nodeIds.remove(osmWay.getNodeId(0));
             nodeIds.remove(osmWay.getNodeId(numNodes - 1));
-            nodeIds.forEach(nodeId -> rawLink.addComposedNode(rawNodes.get(nodeId)));
+            nodeIds.forEach(nodeId -> rawLink.addComposedNode(rawNodes.get(Utils.id2String(nodeId))));
         }
 
         rawLink.setKeyValuePairs(tagValuePairs);
-        rawLinks.put(osmWay.getId(), rawLink);
+        rawLinks.put(Utils.id2String(osmWay.getId()), rawLink);
     }
 
     @Override
@@ -75,12 +76,12 @@ public class OsmReader implements OsmHandler, Reader<Long> {
     }
 
     @Override
-    public Map<Long, NetworkElement.Node> getRawNodes() {
+    public Map<String, NetworkElement.Node> getRawNodes() {
         return rawNodes;
     }
 
     @Override
-    public Map<Long, NetworkElement.Link> getRawLinks() {
+    public Map<String, NetworkElement.Link> getRawLinks() {
         return rawLinks;
     }
 

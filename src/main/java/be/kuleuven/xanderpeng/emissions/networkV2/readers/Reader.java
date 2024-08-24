@@ -6,11 +6,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public interface Reader<T> {
+public interface Reader {
 
     void read(String file) throws IOException;
 
-    Map<T, NetworkElement.Node> getRawNodes();
+    Map<String, NetworkElement.Node> getRawNodes();
 
-    Map<T, NetworkElement.Link> getRawLinks();
+    Map<String, NetworkElement.Link> getRawLinks();
+
 }

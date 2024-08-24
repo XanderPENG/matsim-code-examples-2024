@@ -1,5 +1,6 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.config;
 
+import org.matsim.core.api.internal.MatsimParameters;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
@@ -47,8 +48,8 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     public String OUTPUT_GEOJSON_FILE = "NA";
 
     @Parameter
-    @Comment("If true, the network will be routable, which means that the network will be used for routing.")
-    public boolean ROUTABLE_NETWORK = true;
+    @Comment("If true, the network will be processed to be strongly connected, which means that each node/link can be reached from any other node/link.")
+    public boolean CONNECTED_NETWORK = true;
 
 
 
@@ -71,7 +72,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         config.OUTPUT_NETWORK_FILE = "yours/output/network/file";
         config.OUTPUT_SHP_FILE = "NA";
         config.OUTPUT_GEOJSON_FILE = "NA";
-        config.ROUTABLE_NETWORK = true;
+        config.CONNECTED_NETWORK = true;
 
         // Add a default mode parameter set
         config.addParameterSet(new ModeParamSet(new TransMode(TransMode.Mode.CAR, new ModeKeyValueMapping.Builder()
@@ -85,42 +86,42 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
                 .addKeyValueMapping(Map.of("key1", "value"))
                 .addKeyValueMapping(Map.of("key2", "value", "key3", "value"))
                 .build())));
+
         return config;
     }
 
-    // Load config file
+    // Recognize the parameter set type when loading the config file
+    @Override
+    public ConfigGroup createParameterSet(String type) {
+        if (type.equals(ModeParamSet.GROUP_NAME)) {
+            return new ModeParamSet();
+        } else {
+            throw new IllegalArgumentException("Unsupported parameter set type: " + type);
+        }
+    }
+
+    // Load config file; TODO: Switch to V2 reader
     public static NetworkConverterConfigGroup loadConfigFile(String filename){
-        Config config = ConfigUtils.loadConfig(filename);
+        Config config = ConfigUtils.loadConfig(filename, new NetworkConverterConfigGroup());
         NetworkConverterConfigGroup configGroup = ConfigUtils.addOrGetModule(config, NetworkConverterConfigGroup.GROUP_NAME, NetworkConverterConfigGroup.class);
-        configGroup.readParameterSets();
+        configGroup.readParameterSets(ModeParamSet.GROUP_NAME);
         return configGroup;
     }
 
-    public void readParameterSets(){
-        Collection<? extends ConfigGroup> groups = this.getParameterSets(ModeParamSet.GROUP_NAME);
-        if (groups == null) {
-            return;
-        }
-
-        for (ConfigGroup group : groups) {
-            if (group instanceof ModeParamSet modeParamSet) {
-                modeParamSets.put(modeParamSet.MODE_NAME, modeParamSet);
-            } else {
-                // try to cast the group to ModeParamSet
-                ModeParamSet modeParamSet = new ModeParamSet();
-                Map<String, String> groupParams = group.getParams();
-                modeParamSet.setModeName(groupParams.get("MODE_NAME"));
-                modeParamSet.setFreeSpeed(groupParams.get("FREE_SPEED"));
-                modeParamSet.setEmissionFactor(groupParams.get("EMISSION_FACTOR"));
-                modeParamSet.setLaneCapacity(groupParams.get("LANE_CAPACITY"));
-                modeParamSet.setLaneWidth(groupParams.get("LANE_WIDTH"));
-                modeParamSet.setLanes(groupParams.get("LANES"));
-                modeParamSet.setKeyValMappingString(groupParams.get("KEY_VALUE_MAPPING"));
-                modeParamSets.put(modeParamSet.MODE_NAME, modeParamSet);
-            }
+    // Add a parameter set; which can be extended to add other types of parameter sets (if any in the future)
+    public void readParameterSets(String setName) {
+        switch (setName) {
+            case ModeParamSet.GROUP_NAME -> readModeParamSets();
         }
     }
 
+    public void readModeParamSets() {
+        this.getParameterSets(ModeParamSet.GROUP_NAME).forEach(group -> {
+            ModeParamSet modeParamSet = (ModeParamSet) group;
+            modeParamSets.put(modeParamSet.MODE_NAME, modeParamSet);
+        });
+
+    }
 
     // Write config.xml file
     public void writeConfigFile(String filename) {
@@ -134,7 +135,5 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         defaultConfig.addModule(NetworkConverterConfigGroup.createDefaultConfig());
         ConfigUtils.writeConfig(defaultConfig, filename);
     }
-
-
 
 }
