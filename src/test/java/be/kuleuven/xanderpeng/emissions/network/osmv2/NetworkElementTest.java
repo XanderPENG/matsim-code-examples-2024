@@ -22,5 +22,11 @@ public class NetworkElementTest {
         LOG.info("Node test passed");
     }
 
+    @Test
+    public void testLinkId(){
+        NetworkElement.Node node = new NetworkElement.Node("189", 123.5, 22.98);
+        Assertions.assertEquals("189", node.toString(), "Wrong id");
+    }
+
 
 }

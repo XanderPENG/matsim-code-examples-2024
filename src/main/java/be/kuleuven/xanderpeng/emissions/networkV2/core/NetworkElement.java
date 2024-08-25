@@ -1,6 +1,7 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.core;
 
 
+import be.kuleuven.xanderpeng.emissions.networkV2.tools.Utils;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 
@@ -9,6 +10,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static be.kuleuven.xanderpeng.emissions.networkV2.tools.Utils.id2String;
 
 /**
  * Interim Network Elements, which can be easily converted to MATSim network elements;
@@ -22,27 +25,15 @@ public final class NetworkElement {
 
     public interface Element{
         String getType();
-        Id<?> getId();
+        String getId();
 
-        // A default method to convert the id (which might be a string or a number) to a string
-        default <T> String id2String(T id){
-            boolean isNumber = id instanceof Number;
-            if (id instanceof String){
-                return (String)id;
-            }else if (isNumber){
-                return String.valueOf(id);
-            }else{
-                throw new IllegalArgumentException("The id should be either a string or a number.");
-            }
-
-        }
     }
 
     public static class Node implements Element{
 
-        private final Id<Node> id;
+        private final String id;
         private final Coord coord;
-        private final Map<Id<Link>, Link> relatedLinks = new HashMap<>(); // links that are connected to this node
+        private final Map<String, Link> relatedLinks = new HashMap<>(); // links that are connected to this node
 
 
         /*
@@ -51,12 +42,12 @@ public final class NetworkElement {
          */
 
         public <T> Node(T id, Coord coord){
-            this.id = Id.create(id2String(id), Node.class);
+            this.id = id2String(id);
             this.coord = coord;
         }
 
         public <T> Node(T id, double...coords){
-            this.id = Id.create(id2String(id), Node.class);
+            this.id = id2String(id);
             if(coords.length == 2){
                 this.coord = new Coord(coords[0], coords[1]);
             }else if(coords.length == 3){
@@ -72,7 +63,7 @@ public final class NetworkElement {
         }
 
         @Override
-        public Id<Node> getId(){
+        public String getId(){
             return id;
         }
 
@@ -80,7 +71,7 @@ public final class NetworkElement {
             return coord;
         }
 
-        public Map<Id<Link>, Link> getRelatedLinks(){
+        public Map<String, Link> getRelatedLinks(){
             return relatedLinks;
         }
 
@@ -116,10 +107,10 @@ public final class NetworkElement {
 
     public static class Link implements Element{
 
-        private final Id<Link> id;
+        private final String id;
         private final Node fromNode;
         private final Node toNode;
-        private final Map<Id<Node>, Node> composedNodes = new HashMap<>(); // nodes that are composed in this link
+        private final Map<String, Node> composedNodes = new HashMap<>(); // nodes that are composed in this link; without the from and to nodes
         private final Set<String> allowedModes = new HashSet<>(); // allowed modes for this link
         private final Map<String, String> keyValuePairs = new HashMap<>(); // key-value pairs for this link
 
@@ -128,7 +119,7 @@ public final class NetworkElement {
             return "Link";
         }
 
-        public Id<Link> getId(){
+        public String getId(){
             return id;
         }
 
@@ -140,7 +131,7 @@ public final class NetworkElement {
             return toNode;
         }
 
-        public Map<Id<Node>, Node> getComposedNodes(){
+        public Map<String, Node> getComposedNodes(){
             return composedNodes;
         }
 
@@ -150,7 +141,7 @@ public final class NetworkElement {
 
 
         public <T>Link(T id, Node fromNode, Node toNode){
-            this.id = Id.create(id2String(id), Link.class);
+            this.id = id2String(id);
             this.fromNode = fromNode;
             this.toNode = toNode;
         }
