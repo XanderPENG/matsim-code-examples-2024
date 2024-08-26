@@ -18,6 +18,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
 
     public static final String GROUP_NAME = "multimodalNetworkConverter";
     private final Map<String, ModeParamSet> modeParamSets = new HashMap<>();
+    private ConnectedNetworkParamSet connectedNetworkParamSet;
 
     // Global parameters
     @Parameter
@@ -52,6 +53,9 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     public boolean CONNECTED_NETWORK = true;
 
 
+    @Comment("The key-value mapping for the specific mode; the format should be like a map (e.g., 'oneway:yes')")
+    public Map<String, String> ONEWAY_KEY_VALUE_PAIR = new HashMap<>();
+
 
     public NetworkConverterConfigGroup() {
         super(GROUP_NAME);
@@ -73,6 +77,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         config.OUTPUT_SHP_FILE = "NA";
         config.OUTPUT_GEOJSON_FILE = "NA";
         config.CONNECTED_NETWORK = true;
+        config.ONEWAY_KEY_VALUE_PAIR.put("oneway", "yes");
 
         // Add a default mode parameter set
         config.addParameterSet(new ModeParamSet(new TransMode(TransMode.Mode.CAR, new ModeKeyValueMapping.Builder()
@@ -87,6 +92,9 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
                 .addKeyValueMapping(Map.of("key2", "value", "key3", "value"))
                 .build())));
 
+        config.addParameterSet(new ConnectedNetworkParamSet(true,
+                Set.of("car", "pt", "bike", "walk", "other"), "reduce"));
+
         return config;
     }
 
@@ -95,7 +103,10 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     public ConfigGroup createParameterSet(String type) {
         if (type.equals(ModeParamSet.GROUP_NAME)) {
             return new ModeParamSet();
-        } else {
+        } else if(type.equals(ConnectedNetworkParamSet.GROUP_NAME)){
+            return new ConnectedNetworkParamSet();
+        }
+        else {
             throw new IllegalArgumentException("Unsupported parameter set type: " + type);
         }
     }
@@ -105,6 +116,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         Config config = ConfigUtils.loadConfig(filename, new NetworkConverterConfigGroup());
         NetworkConverterConfigGroup configGroup = ConfigUtils.addOrGetModule(config, NetworkConverterConfigGroup.GROUP_NAME, NetworkConverterConfigGroup.class);
         configGroup.readParameterSets(ModeParamSet.GROUP_NAME);
+        configGroup.readParameterSets(ConnectedNetworkParamSet.GROUP_NAME);
         return configGroup;
     }
 
@@ -112,6 +124,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     public void readParameterSets(String setName) {
         switch (setName) {
             case ModeParamSet.GROUP_NAME -> readModeParamSets();
+            case ConnectedNetworkParamSet.GROUP_NAME -> readConnectedNetworkParamSets();
         }
     }
 
@@ -121,6 +134,12 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
             modeParamSets.put(modeParamSet.MODE_NAME, modeParamSet);
         });
 
+    }
+
+    public void readConnectedNetworkParamSets() {
+        this.getParameterSets(ConnectedNetworkParamSet.GROUP_NAME).forEach(group -> {
+            this.connectedNetworkParamSet = (ConnectedNetworkParamSet) group;
+        });
     }
 
     // Write config.xml file
@@ -136,4 +155,21 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         ConfigUtils.writeConfig(defaultConfig, filename);
     }
 
+    @StringGetter("ONEWAY_KEY_VALUE_PAIR")
+    public String getOnewayKeyValuePair() {
+        StringBuilder sb = new StringBuilder();
+        ONEWAY_KEY_VALUE_PAIR.forEach((key, value) -> sb.append(key).append(":").append(value));
+        return sb.toString().trim();
+    }
+
+    @StringSetter("ONEWAY_KEY_VALUE_PAIR")
+    public void setOnewayKeyValuePair(String onewayKeyValuePairs) {
+        String[] keyValuePair= onewayKeyValuePairs.split(":");
+
+        if (keyValuePair.length == 2) {
+            ONEWAY_KEY_VALUE_PAIR.put(keyValuePair[0].trim(), keyValuePair[1].trim());
+        }
+    }
 }
+
+

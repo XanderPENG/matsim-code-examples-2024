@@ -22,7 +22,7 @@ public final class TransMode {
         return keyValueMapping;
     }
 
-    public boolean matchLinkMode(Map<String, String> keyValuePairs) {
+    public boolean matchTransMode(Map<String, String> keyValuePairs) {
         boolean match = false;
         for (Map<String, String> mapping : keyValueMapping.getKeyValueMapping()) {
             Set<String> predefinedKeys = mapping.keySet();  // keys that are predefined in the mapping
@@ -48,6 +48,7 @@ public final class TransMode {
     }
 
     public enum Mode {
+        // TODO: Here, no parameters are defined for the modes. They should be defined in the TransMode class
         CAR(TransportMode.car, 130 / 3.6, 0.242, 1800, 3.5, 2),
         PT(TransportMode.pt, 40 / 3.6, 0.142, 1200, 3.5, 1),
         TRAIN(TransportMode.train, 100 / 3.6, 0.542, 100, 5, 1),

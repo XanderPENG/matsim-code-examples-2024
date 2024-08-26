@@ -15,6 +15,7 @@ import scala.Int;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class NetworkConverter {
@@ -25,24 +26,31 @@ public final class NetworkConverter {
 
     private final Map<String, NetworkElement.Node> interimNodes = new HashMap<>();
     private final Map<String, NetworkElement.Link> interimLinks = new HashMap<>();
+//    private final Set<ModeKeyValueMapping> modeKeyValueMappingSet;
+
 
     public NetworkConverter(NetworkConverterConfigGroup config) {
-        {
-            this.config = config;
-            switch (config.FILE_TYPE) {
-                case "osm":
-                    reader = new OsmReader();
-                    break;
-                case "shp":
-                    reader = new ShpReader();
-                    break;
-                case "geojson":
-                    reader = new GeoJsonReader();
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported file type: " + config.FILE_TYPE);
-            }
+
+        this.config = config;
+        // Create the reader based on the file type
+        switch (config.FILE_TYPE) {
+            case "osm":
+                reader = new OsmReader();
+                break;
+            case "shp":
+                reader = new ShpReader();
+                break;
+            case "geojson":
+                reader = new GeoJsonReader();
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported file type: " + config.FILE_TYPE);
         }
+        // Initialize the modeKeyValueMapping
+        config.getModeParamSets().forEach((mode, modeParamSet) -> {
+
+        });
+
     }
     /* TODO: 1. Set "oneway" attribute, which should be indicated in the config file
                 1.1. oneway tag-value pairs should be defined in the config file
@@ -82,6 +90,12 @@ public final class NetworkConverter {
 
         return network;
     }
+
+    private void MatchLinkMode(NetworkElement.Link link) {
+        // Match the transMode of the link based on the key-value pairs and the modeParamSets
+
+    }
+
 
     // Count the node occurrence in the links
     private Map<String, Integer> countNodeRef() {

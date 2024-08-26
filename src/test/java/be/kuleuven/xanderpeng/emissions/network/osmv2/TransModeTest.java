@@ -51,7 +51,7 @@ public class TransModeTest {
         testLinkKeyValuePairs.put("cycleway", "no");
         System.out.println(testLinkKeyValuePairs);
 
-        Assertions.assertTrue(carMode.matchLinkMode(testLinkKeyValuePairs), "Should be true");
+        Assertions.assertTrue(carMode.matchTransMode(testLinkKeyValuePairs), "Should be true");
     }
 
 }

@@ -43,7 +43,7 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
         for (Map<String, String> map : KEY_VALUE_MAPPING) {
             sb.append("{");
 
-            map.forEach((key, value) -> sb.append(key).append(":").append(value).append(", "));
+            map.forEach((key, value) -> sb.append(key).append(":").append(value).append(","));
             if (!map.isEmpty()) {
                 sb.deleteCharAt(sb.length() - 1); // delete the last comma
             }
