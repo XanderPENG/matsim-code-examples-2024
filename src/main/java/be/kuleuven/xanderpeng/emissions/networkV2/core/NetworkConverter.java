@@ -5,12 +5,14 @@ import be.kuleuven.xanderpeng.emissions.networkV2.readers.GeoJsonReader;
 import be.kuleuven.xanderpeng.emissions.networkV2.readers.OsmReader;
 import be.kuleuven.xanderpeng.emissions.networkV2.readers.Reader;
 import be.kuleuven.xanderpeng.emissions.networkV2.readers.ShpReader;
+import be.kuleuven.xanderpeng.emissions.networkV2.tools.Utils;
+import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
+import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.network.NetworkUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import scala.Int;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -69,24 +71,56 @@ public final class NetworkConverter {
         LOG.info("Start converting the input network file to MATSim network...");
         // Create matsim network and factory instance
         Network network = NetworkUtils.createNetwork();
-        NetworkFactory networkFactory = network.getFactory();
+        NetworkFactory factory = network.getFactory();
         // Read the input network file
         LOG.info("Reading the input network file: {}", config.INPUT_NETWORK_FILE);
         reader.read(config.INPUT_NETWORK_FILE);
-        // Keep the link details?
-        if (config.KEEP_DETAILED_LINK) {
-            reader.getRawLinks().forEach((linkId, link) -> {
-                // Split the link at the intersection(s)
+
+        // Process the link by a for-loop
+        Map<String, Integer> nodeRefCount = countNodeRef();
+
+        reader.getRawLinks().forEach((linkId, link) -> {
+            // match the TransMode of the link
+            matchLinkMode(link);
+            // Process the oneway attribute of the link
+            NetworkElement.Link reversedLink = processOneway(link);
+            // Split the link and store the interim nodes and links
+            if (config.KEEP_DETAILED_LINK){
+                // Split link at each composed node
                 splitLinkAtComposedNodes(link);
-            });
-        } else {
-            reader.getRawLinks().forEach((linkId, link) -> {
-                // Count the node occurrence in the links
-                Map<String, Integer> nodeRefCount = countNodeRef();
-                // Split the link at the intersection(s)
+                if (reversedLink != null){
+                    splitLinkAtComposedNodes(reversedLink);
+                }
+            } else {
+                // Only split the link at the intersections
                 splitLinkAtIntersections(link, nodeRefCount);
-            });
-        }
+                if (reversedLink != null){
+                    splitLinkAtIntersections(reversedLink, nodeRefCount);
+                }
+            }
+        });
+
+        // Add the interim nodes and links to the MATSim network
+
+        interimLinks.forEach((linkId, link) -> {;
+            Node fromNode = NetworkUtils.createNode(Id.createNodeId(link.getFromNode().getId()), link.getFromNode().getCoord());
+            Node toNode = NetworkUtils.createNode(Id.createNodeId(link.getToNode().getId()), link.getToNode().getCoord());
+            network.addNode(fromNode);
+            network.addNode(toNode);
+            /* TODO: Here, we should specify the link capacity, freespeed, width, etc. To this end:
+                        1. The field containing capacity, freespeed, width, etc. should be specified in the config file (maybe a new ParameterSet is needed)
+                        2. The capacity, freespeed, width, etc. should be set based on the key-value pairs of the link
+                        3. If there is no tag-value pair for a specific attr, the capacity, freespeed, width, etc. should be set based on the transMode of the link
+                            ATTENTION: a link may have several allowed TransModes, and the value of attr (capacity, freespeed, width, etc.) should be set based on the greatest one.
+
+             */
+            // Create the link by NetworkUtils.createAndAddLink, whether we could configure the attr, since the default value is irrational.
+//            NetworkUtils.createLink(network, Id.createLinkId(linkId), fromNode, toNode);
+        });
+
+        // Process the connected network
+
+
 
         return network;
     }
@@ -108,9 +142,22 @@ public final class NetworkConverter {
         link.addAllowedModes(matchedModes);
     }
 
-    private void processOneway(NetworkElement.Link link) {
-        // Process the oneway attribute of the link
-
+    // Process the oneway attribute of the link
+    private NetworkElement.Link processOneway(NetworkElement.Link link) {
+        String onewayKey = (String) config.ONEWAY_KEY_VALUE_PAIR.keySet().toArray()[0];
+        String onewayValue = config.ONEWAY_KEY_VALUE_PAIR.get(onewayKey);
+        NetworkElement.Link reversedLink;
+        // check if the link is one-way based on the key-value pairs
+        if (link.getKeyValuePairs().containsKey(onewayKey) && link.getKeyValuePairs().get(onewayKey).equals(onewayValue)) {
+            reversedLink = new NetworkElement.Link(link.getId()+"_r", link.getToNode(), link.getFromNode());
+            reversedLink.setKeyValuePairs(link.getKeyValuePairs());
+            reversedLink.addAllowedModes(link.getAllowedModes());
+            reversedLink.addComposedNodes(Utils.reverseLinkedHashMap(link.getComposedNodes()));
+            return reversedLink;
+        } else {
+            // if the oneway key is not found in the key-value pairs, or the value is not equal to the specified value
+            return null;
+        }
     }
 
 
@@ -138,8 +185,9 @@ public final class NetworkConverter {
                 // If the node is connected to more than one link, split the link
                 if (nodeRefCount.get(nodeId) > 1) {
                     // Create a new link
-                    NetworkElement.Link newLink = new NetworkElement.Link(link.getId()+"_f"+ idx, fromNode[0], node);
+                    NetworkElement.Link newLink = new NetworkElement.Link(link.getId()+"_"+ idx, fromNode[0], node);
                     newLink.setKeyValuePairs(link.getKeyValuePairs());
+                    newLink.addAllowedModes(link.getAllowedModes());
                     interimLinks.put(newLink.getId(), newLink);
                     // Update the related link info
                     fromNode[0].addRelatedLink(newLink);
@@ -152,10 +200,11 @@ public final class NetworkConverter {
             });
         }
         // Create the last/only link
-        NetworkElement.Link lastLink = new NetworkElement.Link(link.getId()+"_f"+ idx, fromNode[0], endNode);
+        NetworkElement.Link lastLink = new NetworkElement.Link(link.getId()+"_"+ idx, fromNode[0], endNode);
         fromNode[0].addRelatedLink(lastLink);
         endNode.addRelatedLink(lastLink);
         lastLink.setKeyValuePairs(link.getKeyValuePairs());
+        lastLink.addAllowedModes(link.getAllowedModes());
 
         interimNodes.put(fromNode[0].getId(), fromNode[0]);
         interimNodes.put(endNode.getId(), endNode);
@@ -171,8 +220,9 @@ public final class NetworkConverter {
         if (!link.getComposedNodes().isEmpty()) {
             link.getComposedNodes().forEach((nodeId, node) -> {
                 // Create a new link
-                NetworkElement.Link newLink = new NetworkElement.Link(link.getId()+"_f"+ idx, fromNode[0], node);
+                NetworkElement.Link newLink = new NetworkElement.Link(link.getId()+"_"+idx, fromNode[0], node);
                 newLink.setKeyValuePairs(link.getKeyValuePairs());
+                newLink.addAllowedModes(link.getAllowedModes());
                 // Update the related link info
                 fromNode[0].addRelatedLink(newLink);
                 node.addRelatedLink(newLink);
@@ -185,10 +235,11 @@ public final class NetworkConverter {
             });
         }
         // Create the last/only link
-        NetworkElement.Link lastLink = new NetworkElement.Link(link.getId()+"_f"+ idx, fromNode[0], endNode);
+        NetworkElement.Link lastLink = new NetworkElement.Link(link.getId()+"_"+ idx, fromNode[0], endNode);
         fromNode[0].addRelatedLink(lastLink);
         endNode.addRelatedLink(lastLink);
         lastLink.setKeyValuePairs(link.getKeyValuePairs());
+        lastLink.addAllowedModes(link.getAllowedModes());
 
         interimNodes.put(fromNode[0].getId(), fromNode[0]);
         interimNodes.put(endNode.getId(), endNode);

@@ -6,10 +6,7 @@ import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static be.kuleuven.xanderpeng.emissions.networkV2.tools.Utils.id2String;
 
@@ -110,7 +107,8 @@ public final class NetworkElement {
         private final String id;
         private final Node fromNode;
         private final Node toNode;
-        private final Map<String, Node> composedNodes = new HashMap<>(); // nodes that are composed in this link; without the from and to nodes
+        // the link can be composed of multiple nodes, where the nodes are stored in order
+        private final LinkedHashMap<String, Node> composedNodes = new LinkedHashMap<>();
         private final Set<TransMode.Mode> allowedModes = new HashSet<>(); // allowed modes for this link
         private final Map<String, String> keyValuePairs = new HashMap<>(); // key-value pairs for this link
 
@@ -131,7 +129,7 @@ public final class NetworkElement {
             return toNode;
         }
 
-        public Map<String, Node> getComposedNodes(){
+        public LinkedHashMap<String, Node> getComposedNodes(){
             return composedNodes;
         }
 
@@ -154,6 +152,10 @@ public final class NetworkElement {
             for(Node node : nodes){
                 composedNodes.put(node.getId(), node);
             }
+        }
+
+        public void addComposedNodes(LinkedHashMap<String, Node> nodes){
+            composedNodes.putAll(nodes);
         }
 
         public void addAllowedMode(TransMode.Mode mode){

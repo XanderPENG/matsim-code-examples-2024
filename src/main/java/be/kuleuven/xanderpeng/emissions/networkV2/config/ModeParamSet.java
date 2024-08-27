@@ -101,11 +101,11 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
     }
 
     // Constructor for totally customized params
-    public ModeParamSet(String modeName, double freeSpeed, double emissionFactor,
+    public ModeParamSet(TransMode.Mode mode, double freeSpeed, double emissionFactor,
                         double laneCapacity, double laneWidth, double lanes,
                         Set<Map<String, String>> keyValueMapping) {
         super(GROUP_NAME);
-        this.MODE_NAME = modeName;
+        this.MODE_NAME = mode.name;
         this.FREE_SPEED = freeSpeed;
         this.EMISSION_FACTOR = emissionFactor;
         this.LANE_CAPACITY = laneCapacity;

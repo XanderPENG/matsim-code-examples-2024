@@ -1,5 +1,6 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.config;
 
+import be.kuleuven.xanderpeng.emissions.networkV2.core.TransMode;
 import org.matsim.core.api.internal.MatsimParameters;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
@@ -14,9 +15,9 @@ public class ConnectedNetworkParamSet extends ReflectiveConfigGroup implements M
     @Comment("If true, the network will be processed to be strongly connected, which means that each node/link can be reached from any other node/link.")
     public boolean STRONGLY_CONNECTED = true ;
 
-    @Parameter
+
     @Comment("The mode of the network, which should be any of the following: [car, pt, train, bike, walk, ship, other]. see TransMode.Mode for more details.")
-    public Set<String> MODE = new HashSet<>();
+    public Set<TransMode.Mode> MODE = new HashSet<>();
 
     @Parameter
     @Comment("""
@@ -25,11 +26,31 @@ public class ConnectedNetworkParamSet extends ReflectiveConfigGroup implements M
             \t\t\t\t2. `insert`: connect all the isolated nodes/links to the nearest node/link;""")
     public String METHOD = "reduce";
 
+    @StringGetter("MODE")
+    public String getModeString() {
+        StringBuilder sb = new StringBuilder();
+        for (TransMode.Mode mode : MODE) {
+            sb.append(mode.name).append(", ");
+        }
+        return sb.toString().trim(); // remove the last comma
+    }
+
+    @StringSetter("MODE")
+    public void setModeString(String modeString) {
+        // Create a new HashSet to store the parsed
+        Set<TransMode.Mode> set = new HashSet<>();
+        // Split the input string by commas to get individual mode strings
+        for (String mode : modeString.split(",")) {
+            set.add(TransMode.Mode.valueOf(mode.trim()));
+        }
+        this.MODE = set;
+    }
+
     public ConnectedNetworkParamSet() {
         super(GROUP_NAME);
     }
 
-    public ConnectedNetworkParamSet(boolean stronglyConnected, Set<String> modes, String method) {
+    public ConnectedNetworkParamSet(boolean stronglyConnected, Set<TransMode.Mode> modes, String method) {
         super(GROUP_NAME);
         this.STRONGLY_CONNECTED = stronglyConnected;
         this.MODE = modes;
