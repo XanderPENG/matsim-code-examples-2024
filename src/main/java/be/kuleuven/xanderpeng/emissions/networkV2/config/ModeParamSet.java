@@ -1,5 +1,6 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.config;
 
+import be.kuleuven.xanderpeng.emissions.networkV2.core.ModeKeyValueMapping;
 import org.matsim.core.api.internal.MatsimParameters;
 import org.matsim.core.config.ReflectiveConfigGroup;
 import be.kuleuven.xanderpeng.emissions.networkV2.core.TransMode;
@@ -91,11 +92,11 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
     public ModeParamSet(TransMode transMode) {
         super(GROUP_NAME);
         this.MODE_NAME = transMode.getMode().name;
-        this.FREE_SPEED = transMode.getMode().defaultMaxSpeed;
-        this.EMISSION_FACTOR = transMode.getMode().defaultEmissionFactor;
-        this.LANE_CAPACITY = transMode.getMode().defaultLaneCapacity;
-        this.LANE_WIDTH = transMode.getMode().defaultLaneWidth;
-        this.LANES = transMode.getMode().defaultLanes;
+        this.FREE_SPEED = transMode.getDefaultMaxSpeed();
+        this.EMISSION_FACTOR = transMode.getDefaultEmissionFactor();
+        this.LANE_CAPACITY = transMode.getDefaultLaneCapacity();
+        this.LANE_WIDTH = transMode.getDefaultLaneWidth();
+        this.LANES = transMode.getDefaultLanes();
         this.KEY_VALUE_MAPPING = transMode.getModeKeyValueMapping().getKeyValueMapping();
     }
 
@@ -113,4 +114,58 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
         this.KEY_VALUE_MAPPING = keyValueMapping;
     }
 
+    public TransMode getTransMode() {
+        switch (MODE_NAME) {
+            case "car" -> {
+                return new TransMode(TransMode.Mode.CAR, new ModeKeyValueMapping.Builder()
+                        .setMode(TransMode.Mode.CAR)
+                        .setKeyValueMapping(KEY_VALUE_MAPPING)
+                        .build(),
+                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+            }
+            case "pt" -> {
+                return new TransMode(TransMode.Mode.PT, new ModeKeyValueMapping.Builder()
+                        .setMode(TransMode.Mode.PT)
+                        .setKeyValueMapping(KEY_VALUE_MAPPING)
+                        .build(),
+                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+            }
+            case "train" -> {
+                return new TransMode(TransMode.Mode.TRAIN, new ModeKeyValueMapping.Builder()
+                        .setMode(TransMode.Mode.TRAIN)
+                        .setKeyValueMapping(KEY_VALUE_MAPPING)
+                        .build(),
+                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+            }
+            case "bike" -> {
+                return new TransMode(TransMode.Mode.BIKE, new ModeKeyValueMapping.Builder()
+                        .setMode(TransMode.Mode.BIKE)
+                        .setKeyValueMapping(KEY_VALUE_MAPPING)
+                        .build(),
+                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+            }
+            case "walk" -> {
+                return new TransMode(TransMode.Mode.WALK, new ModeKeyValueMapping.Builder()
+                        .setMode(TransMode.Mode.WALK)
+                        .setKeyValueMapping(KEY_VALUE_MAPPING)
+                        .build(),
+                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+            }
+            case "ship" -> {
+                return new TransMode(TransMode.Mode.SHIP, new ModeKeyValueMapping.Builder()
+                        .setMode(TransMode.Mode.SHIP)
+                        .setKeyValueMapping(KEY_VALUE_MAPPING)
+                        .build(),
+                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+            }
+            case "other" -> {
+                return new TransMode(TransMode.Mode.OTHER, new ModeKeyValueMapping.Builder()
+                        .setMode(TransMode.Mode.OTHER)
+                        .setKeyValueMapping(KEY_VALUE_MAPPING)
+                        .build(),
+                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+            }
+        }
+        throw new IllegalArgumentException("Unsupported mode: " + MODE_NAME);
+    }
 }

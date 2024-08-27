@@ -14,6 +14,7 @@ import scala.Int;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,7 +27,7 @@ public final class NetworkConverter {
 
     private final Map<String, NetworkElement.Node> interimNodes = new HashMap<>();
     private final Map<String, NetworkElement.Link> interimLinks = new HashMap<>();
-//    private final Set<ModeKeyValueMapping> modeKeyValueMappingSet;
+    private final Set<TransMode> configuredTransModes = new HashSet<>();
 
 
     public NetworkConverter(NetworkConverterConfigGroup config) {
@@ -46,9 +47,9 @@ public final class NetworkConverter {
             default:
                 throw new IllegalArgumentException("Unsupported file type: " + config.FILE_TYPE);
         }
-        // Initialize the modeKeyValueMapping
+        // Initialize the configuredTransModes
         config.getModeParamSets().forEach((mode, modeParamSet) -> {
-
+            configuredTransModes.add(modeParamSet.getTransMode());
         });
 
     }
@@ -61,7 +62,6 @@ public final class NetworkConverter {
                 2.3. Users can opt to remove the isolated nodes/links, and only keep the largest connected subnetwork -- CONNECTED_NETWORK = true
                 2.4. Users can opt a threshold to determine whether a node/link is isolated or not, which is a combination strategy of (2.2 & 2.3) -- CONNECTED_NETWORK = true
                 2.5. Users can opt a specific transMode instead of the whole network -- CONNECTED_NETWORK = true
-             3. function: Match the transMode
              4. function: Process Oneway
              5  function: Process the connected network
     */
@@ -91,8 +91,25 @@ public final class NetworkConverter {
         return network;
     }
 
-    private void MatchLinkMode(NetworkElement.Link link) {
+    private void matchLinkMode(NetworkElement.Link link) {
         // Match the transMode of the link based on the key-value pairs and the modeParamSets
+        Set<TransMode.Mode> matchedModes = new HashSet<>();
+        // Match the transMode based on the key-value pairs
+        configuredTransModes.forEach(transMode -> {
+            if (transMode.matchTransMode(link.getKeyValuePairs())) {
+                matchedModes.add(transMode.getMode());
+            }
+        });
+        // If the link is not aligned with any pre-defined transMode, while the KEEP_UNDEFINED_LINK is true, keep the link
+        if (matchedModes.isEmpty() && config.KEEP_UNDEFINED_LINK) {
+            matchedModes.add(TransMode.Mode.OTHER);
+        }
+        // Set the allowed modes for the link
+        link.addAllowedModes(matchedModes);
+    }
+
+    private void processOneway(NetworkElement.Link link) {
+        // Process the oneway attribute of the link
 
     }
 

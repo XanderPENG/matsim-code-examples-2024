@@ -40,7 +40,7 @@ public class TransModeTest {
                 .build();
         System.out.println(carMapping.getKeyValueMapping());
 
-        TransMode carMode = new TransMode(TransMode.Mode.CAR, carMapping);
+        TransMode carMode = new TransMode(TransMode.Mode.CAR, carMapping, 130 / 3.6, 0.242, 1800, 3.5, 2);
 
         Map<String, String> testLinkKeyValuePairs = new HashMap<>();
         /* As "bicycle: yes" is solely defined in the mapping, it will return true only when the key-value pair contains "bicycle: yes";

@@ -111,7 +111,7 @@ public final class NetworkElement {
         private final Node fromNode;
         private final Node toNode;
         private final Map<String, Node> composedNodes = new HashMap<>(); // nodes that are composed in this link; without the from and to nodes
-        private final Set<String> allowedModes = new HashSet<>(); // allowed modes for this link
+        private final Set<TransMode.Mode> allowedModes = new HashSet<>(); // allowed modes for this link
         private final Map<String, String> keyValuePairs = new HashMap<>(); // key-value pairs for this link
 
 
@@ -135,7 +135,7 @@ public final class NetworkElement {
             return composedNodes;
         }
 
-        public Set<String> getAllowedModes(){
+        public Set<TransMode.Mode> getAllowedModes(){
             return allowedModes;
         }
 
@@ -156,11 +156,11 @@ public final class NetworkElement {
             }
         }
 
-        public void addAllowedMode(String mode){
+        public void addAllowedMode(TransMode.Mode mode){
             allowedModes.add(mode);
         }
 
-        public void addAllowedModes(Set<String> modes){
+        public void addAllowedModes(Set<TransMode.Mode> modes){
             allowedModes.addAll(modes);
         }
 

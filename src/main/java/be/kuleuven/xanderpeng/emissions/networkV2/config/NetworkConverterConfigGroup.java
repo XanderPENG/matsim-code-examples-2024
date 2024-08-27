@@ -1,5 +1,6 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.config;
 
+import be.kuleuven.xanderpeng.emissions.networkV2.tools.TransModeImpl;
 import org.matsim.core.api.internal.MatsimParameters;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
@@ -52,7 +53,12 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     @Comment("If true, the network will be processed to be strongly connected, which means that each node/link can be reached from any other node/link.")
     public boolean CONNECTED_NETWORK = true;
 
-
+    @Parameter
+    @Comment(""" 
+             If true, the network will be processed to be one-way based on the `ONEWAY_KEY_VALUE_PAIR`,
+             \t\t\t which means that the traffic can only flow in specified direction. Otherwise, the traffic can flow in both directions of the whole network.
+             """)
+    public boolean ONEWAY = true;
     @Comment("The key-value mapping for the specific mode; the format should be like a map (e.g., 'oneway:yes')")
     public Map<String, String> ONEWAY_KEY_VALUE_PAIR = new HashMap<>();
 
@@ -80,17 +86,15 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         config.ONEWAY_KEY_VALUE_PAIR.put("oneway", "yes");
 
         // Add a default mode parameter set
-        config.addParameterSet(new ModeParamSet(new TransMode(TransMode.Mode.CAR, new ModeKeyValueMapping.Builder()
-                .setMode(TransMode.Mode.CAR)
-                .addKeyValueMapping(Map.of("key1", "value"))
-                .addKeyValueMapping(Map.of("key2", "value", "key3", "value"))
-                .build())));
+        config.addParameterSet(new ModeParamSet(TransModeImpl.CAR));
 
-        config.addParameterSet(new ModeParamSet(new TransMode(TransMode.Mode.BIKE, new ModeKeyValueMapping.Builder()
-                .setMode(TransMode.Mode.BIKE)
-                .addKeyValueMapping(Map.of("key1", "value"))
-                .addKeyValueMapping(Map.of("key2", "value", "key3", "value"))
-                .build())));
+        config.addParameterSet(new ModeParamSet(TransModeImpl.BIKE));
+
+        config.addParameterSet(new ModeParamSet(TransModeImpl.PT));
+
+        config.addParameterSet(new ModeParamSet(TransModeImpl.WALK));
+
+        config.addParameterSet(new ModeParamSet(TransModeImpl.OTHER));
 
         config.addParameterSet(new ConnectedNetworkParamSet(true,
                 Set.of("car", "pt", "bike", "walk", "other"), "reduce"));
@@ -120,7 +124,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         return configGroup;
     }
 
-    // Add a parameter set; which can be extended to add other types of parameter sets (if any in the future)
+    // Add a parameter set
     public void readParameterSets(String setName) {
         switch (setName) {
             case ModeParamSet.GROUP_NAME -> readModeParamSets();

@@ -9,10 +9,25 @@ public final class TransMode {
     private final Mode mode;
     private final ModeKeyValueMapping keyValueMapping;
 
-    public TransMode(Mode mode, ModeKeyValueMapping keyValueMapping) {
+    private final double defaultMaxSpeed;
+    private final double defaultEmissionFactor;
+    private final double defaultLaneCapacity;
+    private final double defaultLaneWidth;
+    private final double defaultLanes;
+
+
+    public TransMode(Mode mode, ModeKeyValueMapping keyValueMapping,
+                     double defaultMaxSpeed, double defaultEmissionFactor, double defaultLaneCapacity,
+                     double defaultLaneWidth, double defaultLanes) {
         this.mode = mode;
         this.keyValueMapping = keyValueMapping;
+        this.defaultMaxSpeed = defaultMaxSpeed;
+        this.defaultEmissionFactor = defaultEmissionFactor;
+        this.defaultLaneCapacity = defaultLaneCapacity;
+        this.defaultLaneWidth = defaultLaneWidth;
+        this.defaultLanes = defaultLanes;
     }
+
 
     public Mode getMode() {
         return mode;
@@ -21,6 +36,27 @@ public final class TransMode {
     public ModeKeyValueMapping getModeKeyValueMapping() {
         return keyValueMapping;
     }
+
+    public double getDefaultMaxSpeed() {
+        return defaultMaxSpeed;
+    }
+
+    public double getDefaultEmissionFactor() {
+        return defaultEmissionFactor;
+    }
+
+    public double getDefaultLaneCapacity() {
+        return defaultLaneCapacity;
+    }
+
+    public double getDefaultLaneWidth() {
+        return defaultLaneWidth;
+    }
+
+    public double getDefaultLanes() {
+        return defaultLanes;
+    }
+
 
     public boolean matchTransMode(Map<String, String> keyValuePairs) {
         boolean match = false;
@@ -48,31 +84,20 @@ public final class TransMode {
     }
 
     public enum Mode {
-        // TODO: Here, no parameters are defined for the modes. They should be defined in the TransMode class
-        CAR(TransportMode.car, 130 / 3.6, 0.242, 1800, 3.5, 2),
-        PT(TransportMode.pt, 40 / 3.6, 0.142, 1200, 3.5, 1),
-        TRAIN(TransportMode.train, 100 / 3.6, 0.542, 100, 5, 1),
-        BIKE(TransportMode.bike, 20 / 3.6, 0, 2000, 2, 1),
-        WALK(TransportMode.walk, 5 / 3.6, 0, 5000, 1, 1),
-        SHIP(TransportMode.ship, 20 / 3.6, 0.142, 1000, 10, 1),
-        OTHER("other", 20 / 3.6, 0.142, 1000, 3.5, 1);
+
+        CAR(TransportMode.car),
+        PT(TransportMode.pt),
+        TRAIN(TransportMode.train),
+        BIKE(TransportMode.bike),
+        WALK(TransportMode.walk),
+        SHIP(TransportMode.ship),
+        OTHER("other");
 
         public final String name;
-        public final double defaultMaxSpeed;
-        public final double defaultEmissionFactor;
-        public final double defaultLaneCapacity;
-        public final double defaultLaneWidth;
-        public final double defaultLanes;
 
 
-        Mode(String name, double defaultMaxSpeed, double defaultEmissionFactor,
-             double defaultLaneCapacity, double defaultLaneWidth, double defaultLanes) {
+        Mode(String name) {
             this.name = name;
-            this.defaultMaxSpeed = defaultMaxSpeed;
-            this.defaultEmissionFactor = defaultEmissionFactor;
-            this.defaultLaneCapacity = defaultLaneCapacity;
-            this.defaultLaneWidth = defaultLaneWidth;
-            this.defaultLanes = defaultLanes;
         }
     }
 
