@@ -1,16 +1,13 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.config;
 
-import be.kuleuven.xanderpeng.emissions.networkV2.tools.TransModeImpl;
-import org.matsim.core.api.internal.MatsimParameters;
+import be.kuleuven.xanderpeng.emissions.networkV2.tools.TransModeFactory;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
 import be.kuleuven.xanderpeng.emissions.networkV2.core.TransMode;
-import be.kuleuven.xanderpeng.emissions.networkV2.core.ModeKeyValueMapping;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +17,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     public static final String GROUP_NAME = "multimodalNetworkConverter";
     private final Map<String, ModeParamSet> modeParamSets = new HashMap<>();
     private ConnectedNetworkParamSet connectedNetworkParamSet;
+    private LinkAttrParamSet linkAttrParamSet;
 
     // Global parameters
     @Parameter
@@ -28,6 +26,9 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
 
     @Parameter
     public String INPUT_CRS;
+
+    @Parameter
+    public String OUTPUT_CRS;
 
     @Parameter
     public String INPUT_NETWORK_FILE;
@@ -41,6 +42,10 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     public boolean KEEP_UNDEFINED_LINK;
 
     @Parameter
+    @Comment("The key for the to-be-reserved links that are not aligned with any pre-defined @TransMode.")
+    public String UNDEFINED_LINK_KEY;
+
+    @Parameter
     public String OUTPUT_NETWORK_FILE;
 
     @Comment("Fill in the file path if you want to output the network in the shp/geojson format.")
@@ -49,15 +54,14 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     @Parameter
     public String OUTPUT_GEOJSON_FILE;
 
-    @Parameter
-    @Comment("If true, the network will be processed to be strongly connected, which means that each node/link can be reached from any other node/link.")
-    public boolean CONNECTED_NETWORK;
+//    @Parameter
+//    @Comment("If true, the network will be processed to be strongly connected, which means that each node/link can be reached from any other node/link.")
+//    public boolean CONNECTED_NETWORK;
 
     @Parameter
     @Comment(""" 
              If true, the network will be processed to be one-way based on the `ONEWAY_KEY_VALUE_PAIR`,
-             \t\t\t which means that the traffic can only flow in specified direction. Otherwise, the traffic can flow in both directions of the whole network.
-             """)
+             \t\t\t which means that the traffic can only flow in specified direction. Otherwise, the traffic can flow in both directions of the whole network.""")
     public boolean ONEWAY;
     @Comment("The key-value mapping for the specific mode; the format should be like a map (e.g., 'oneway:yes')")
     public Map<String, String> ONEWAY_KEY_VALUE_PAIR;
@@ -67,20 +71,22 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         super(GROUP_NAME);
     }
 
-    public NetworkConverterConfigGroup(String filetype, String inputCRS, String inputNetworkFile,
-                                       boolean keepDetailedLink, boolean keepUndefinedLink, String outputNetworkFile,
-                                       String outputShpFile, String outputGeojsonFile, boolean connectedNetwork, boolean oneway,
+    public NetworkConverterConfigGroup(String filetype, String inputCRS, String outputCRS, String inputNetworkFile,
+                                       boolean keepDetailedLink, boolean keepUndefinedLink, String undefinedLinkKey,String outputNetworkFile,
+                                       String outputShpFile, String outputGeojsonFile, boolean oneway,
                                        Map<String, String> onewayKeyValuePair) {
         super(GROUP_NAME);
         this.FILE_TYPE = filetype;
         this.INPUT_CRS = inputCRS;
+        this.OUTPUT_CRS = outputCRS;
         this.INPUT_NETWORK_FILE = inputNetworkFile;
         this.KEEP_DETAILED_LINK = keepDetailedLink;
         this.KEEP_UNDEFINED_LINK = keepUndefinedLink;
+        this.UNDEFINED_LINK_KEY = undefinedLinkKey;
         this.OUTPUT_NETWORK_FILE = outputNetworkFile;
         this.OUTPUT_SHP_FILE = outputShpFile;
         this.OUTPUT_GEOJSON_FILE = outputGeojsonFile;
-        this.CONNECTED_NETWORK = connectedNetwork;
+//        this.CONNECTED_NETWORK = connectedNetwork;
         this.ONEWAY = oneway;
         this.ONEWAY_KEY_VALUE_PAIR = onewayKeyValuePair;
     }
@@ -89,34 +95,45 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         return modeParamSets;
     }
 
+    public ConnectedNetworkParamSet getConnectedNetworkParamSet() {
+        return connectedNetworkParamSet;
+    }
+
+    public LinkAttrParamSet getLinkAttrParamSet() {
+        return linkAttrParamSet;
+    }
+
+
     // create a default NetworkConverterConfigGroup
     public static NetworkConverterConfigGroup createDefaultConfig() {
         NetworkConverterConfigGroup config = new NetworkConverterConfigGroup();
         config.FILE_TYPE = "osm";
         config.INPUT_CRS = "EPSG:4326";
+        config.OUTPUT_CRS = "EPSG:4326";
         config.INPUT_NETWORK_FILE = "yours/input/network/file";
         config.KEEP_DETAILED_LINK = true;
         config.KEEP_UNDEFINED_LINK = true;
+        config.UNDEFINED_LINK_KEY = "highway";
         config.OUTPUT_NETWORK_FILE = "yours/output/network/file";
+        config.ONEWAY = false;
         config.OUTPUT_SHP_FILE = "NA";
         config.OUTPUT_GEOJSON_FILE = "NA";
-        config.CONNECTED_NETWORK = true;
         config.ONEWAY_KEY_VALUE_PAIR.put("oneway", "yes");
 
         // Add a default mode parameter set
-        config.addParameterSet(new ModeParamSet(TransModeImpl.CAR));
+        config.addParameterSet(new ModeParamSet(TransModeFactory.CAR));
 
-        config.addParameterSet(new ModeParamSet(TransModeImpl.BIKE));
+        config.addParameterSet(new ModeParamSet(TransModeFactory.BIKE));
 
-        config.addParameterSet(new ModeParamSet(TransModeImpl.PT));
+        config.addParameterSet(new ModeParamSet(TransModeFactory.PT));
 
-        config.addParameterSet(new ModeParamSet(TransModeImpl.WALK));
+        config.addParameterSet(new ModeParamSet(TransModeFactory.WALK));
 
-        config.addParameterSet(new ModeParamSet(TransModeImpl.OTHER));
+        config.addParameterSet(new ModeParamSet(TransModeFactory.OTHER));
 
         config.addParameterSet(new ConnectedNetworkParamSet(true,
                 Set.of(TransMode.Mode.CAR, TransMode.Mode.PT, TransMode.Mode.BIKE, TransMode.Mode.WALK, TransMode.Mode.OTHER), "reduce"));
-
+        config.addParameterSet(new LinkAttrParamSet("speed", "capacity", "lanes", "width", "NA"));
         return config;
     }
 
@@ -124,14 +141,12 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     // Recognize the parameter set type when loading the config file
     @Override
     public ConfigGroup createParameterSet(String type) {
-        if (type.equals(ModeParamSet.GROUP_NAME)) {
-            return new ModeParamSet();
-        } else if(type.equals(ConnectedNetworkParamSet.GROUP_NAME)){
-            return new ConnectedNetworkParamSet();
-        }
-        else {
-            throw new IllegalArgumentException("Unsupported parameter set type: " + type);
-        }
+        return switch (type) {
+            case ModeParamSet.GROUP_NAME -> new ModeParamSet();
+            case ConnectedNetworkParamSet.GROUP_NAME -> new ConnectedNetworkParamSet();
+            case LinkAttrParamSet.GROUP_NAME -> new LinkAttrParamSet();
+            default -> throw new IllegalArgumentException("Unsupported parameter set type: " + type);
+        };
     }
 
     // Load config file; TODO: Switch to V2 reader
@@ -148,6 +163,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         switch (setName) {
             case ModeParamSet.GROUP_NAME -> readModeParamSets();
             case ConnectedNetworkParamSet.GROUP_NAME -> readConnectedNetworkParamSets();
+            case LinkAttrParamSet.GROUP_NAME -> readLinkAttrParamSet();
         }
     }
 
@@ -162,6 +178,12 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     public void readConnectedNetworkParamSets() {
         this.getParameterSets(ConnectedNetworkParamSet.GROUP_NAME).forEach(group -> {
             this.connectedNetworkParamSet = (ConnectedNetworkParamSet) group;
+        });
+    }
+
+    public void readLinkAttrParamSet() {
+        this.getParameterSets(LinkAttrParamSet.GROUP_NAME).forEach(group -> {
+            this.linkAttrParamSet = (LinkAttrParamSet) group;
         });
     }
 

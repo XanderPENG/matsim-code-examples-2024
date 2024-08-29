@@ -57,17 +57,17 @@ public final class TransMode {
         return defaultLanes;
     }
 
-
+    // TODO: Optimize the matching process; create/enable a fuzzy matching function (Map to Map) in the Utils class
     public boolean matchTransMode(Map<String, String> keyValuePairs) {
         boolean match = false;
-        for (Map<String, String> mapping : keyValueMapping.getKeyValueMapping()) {
+        for (Map<String, String> mapping : this.keyValueMapping.getKeyValueMapping()) {
             Set<String> predefinedKeys = mapping.keySet();  // keys that are predefined in the mapping
             if (keyValuePairs.keySet().containsAll(predefinedKeys)) {  // if the keyValuePairs contain all the predefined keys
                 // check if the values of the predefined keys match those in the keyValuePairs
                 for (String key : predefinedKeys) {
                     if (!keyValuePairs.get(key).equals(mapping.get(key))) {  // if any key-value pair is not equal to the predefined mapping, return false
                         match = false;
-                        break;
+                        break;  // break the inner for-loop, and continue to the next mapping
                     } else {
                         match = true;
                     }

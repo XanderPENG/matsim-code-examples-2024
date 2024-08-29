@@ -10,22 +10,32 @@ public class LinkAttrParamSet extends ReflectiveConfigGroup implements MatsimPar
     public static final String GROUP_NAME = "linkAttrParamSet";
 
     @Parameter
-    public String MAX_SPEED;
+    public String MAX_SPEED_FIELD;
 
     @Parameter
-    public String CAPACITY;
+    public String CAPACITY_FIELD;
 
     @Parameter
-    public String LANES;
+    public String LANES_FIELD;
 
     @Parameter
-    public String WIDTH;
+    public String WIDTH_FIELD;
 
     @Parameter
-
+    public String LENGTH_FIELD;
 
 
     public LinkAttrParamSet() {
         super(GROUP_NAME);
     }
+
+    public LinkAttrParamSet(String maxSpeedField, String capacityField, String lanesField, String widthField, String lengthField) {
+        super(GROUP_NAME);
+        this.MAX_SPEED_FIELD = maxSpeedField;
+        this.CAPACITY_FIELD = capacityField;
+        this.LANES_FIELD = lanesField;
+        this.WIDTH_FIELD = widthField;
+        this.LENGTH_FIELD = lengthField;
+    }
 }
+

@@ -2,14 +2,13 @@ package be.kuleuven.xanderpeng.emissions.networkV2.tools;
 
 import be.kuleuven.xanderpeng.emissions.networkV2.core.ModeKeyValueMapping;
 import be.kuleuven.xanderpeng.emissions.networkV2.core.TransMode;
-import org.matsim.api.core.v01.TransportMode;
 
 import java.util.Map;
 
 /**
  * This class is used to store the default transportation modes and their parameters.
  */
-public class TransModeImpl {
+public class TransModeFactory {
 
     public static TransMode CAR = new TransMode(TransMode.Mode.CAR, new ModeKeyValueMapping.Builder()
             .setMode(TransMode.Mode.CAR)

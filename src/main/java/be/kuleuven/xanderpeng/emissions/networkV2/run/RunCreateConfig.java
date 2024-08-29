@@ -1,6 +1,7 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.run;
 
 import be.kuleuven.xanderpeng.emissions.networkV2.config.ConnectedNetworkParamSet;
+import be.kuleuven.xanderpeng.emissions.networkV2.config.LinkAttrParamSet;
 import be.kuleuven.xanderpeng.emissions.networkV2.config.ModeParamSet;
 import be.kuleuven.xanderpeng.emissions.networkV2.config.NetworkConverterConfigGroup;
 import be.kuleuven.xanderpeng.emissions.networkV2.core.ModeKeyValueMapping;
@@ -18,11 +19,11 @@ public class RunCreateConfig {
 //        NetworkConverterConfigGroup config = NetworkConverterConfigGroup.createDefaultConfig();
 
         // create a customized config
-        NetworkConverterConfigGroup config = new NetworkConverterConfigGroup("shp", "EPSG:4326", Utils.aldiNetworkInput,
-                false, true,
+        NetworkConverterConfigGroup config = new NetworkConverterConfigGroup("shp", "EPSG:4326", Utils.outputCrs, Utils.aldiNetworkInput,
+                false, true, "highway",
                 Utils.networkOutputDir + "multimodalNetwork.xml",
                 "NA", "NA",
-                true, true, Map.of("oneway", "yes"));
+                true,  Map.of("oneway", "yes"));
 
         // Create customized TransMode
         TransMode bikeMode = new TransMode(TransMode.Mode.BIKE, new ModeKeyValueMapping.Builder()
@@ -65,12 +66,16 @@ public class RunCreateConfig {
         Set<TransMode.Mode> modes = Set.of(TransMode.Mode.CAR, TransMode.Mode.PT, TransMode.Mode.BIKE, TransMode.Mode.WALK);
         ConnectedNetworkParamSet connectedNetworkParamSet = new ConnectedNetworkParamSet(true, modes, "reduce");
 
+        // create a customized LinkAttrParamSet
+        LinkAttrParamSet linkAttrParamSet = new LinkAttrParamSet("max_speed", "capacity", "lanes", "width", "length");
+
         // Add customized Parameter sets
         config.addParameterSet(bikeParamSet);
         config.addParameterSet(carParamSet);
         config.addParameterSet(ptParamSet);
         config.addParameterSet(walkParamSet);
         config.addParameterSet(connectedNetworkParamSet);
+        config.addParameterSet(linkAttrParamSet);
 
         // write the config file
         config.writeConfigFile(Utils.networkOutputDir + "multimodalNetworkConverterConfig.xml");

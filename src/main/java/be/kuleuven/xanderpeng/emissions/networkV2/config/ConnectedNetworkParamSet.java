@@ -13,7 +13,7 @@ public class ConnectedNetworkParamSet extends ReflectiveConfigGroup implements M
 
     @Parameter
     @Comment("If true, the network will be processed to be strongly connected, which means that each node/link can be reached from any other node/link.")
-    public boolean STRONGLY_CONNECTED = true ;
+    public boolean STRONGLY_CONNECTED;
 
 
     @Comment("The mode of the network, which should be any of the following: [car, pt, train, bike, walk, ship, other]. see TransMode.Mode for more details.")
@@ -23,8 +23,10 @@ public class ConnectedNetworkParamSet extends ReflectiveConfigGroup implements M
     @Comment("""
             The method to process the network, which should be one of the following:
             \t\t\t\t1. `reduce`: remove the isolated nodes/links, and only keep the largest connected subnetwork;
-            \t\t\t\t2. `insert`: connect all the isolated nodes/links to the nearest node/link;""")
-    public String METHOD = "reduce";
+            \t\t\t\t2. `insert`: connect all the isolated nodes/links to the nearest node/link;
+            \t\t\t\t3. `adapt_mode`: adapt and add TransMode for some links to make the (sub)network strongly connected. (e.g., add a bike mode for the car-tagged links)""")
+
+    public String METHOD;
 
     @StringGetter("MODE")
     public String getModeString() {

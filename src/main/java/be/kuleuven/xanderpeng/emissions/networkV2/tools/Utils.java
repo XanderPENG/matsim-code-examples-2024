@@ -1,5 +1,8 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.tools;
 
+import org.geotools.referencing.GeodeticCalculator;
+import org.matsim.api.core.v01.Coord;
+
 import java.util.*;
 
 public class Utils {
@@ -34,6 +37,19 @@ public class Utils {
         }
 
         return reversedMap;
+    }
+
+    // Calculate the haversine distance between two coordinates using GeoTools (unit: meter)
+    public static double calculateHaversineDist(Coord coord1, Coord coord2){
+        GeodeticCalculator calculator = new GeodeticCalculator();
+        calculator.setStartingGeographicPoint(coord1.getX(), coord1.getY());
+        calculator.setDestinationGeographicPoint(coord2.getX(), coord2.getY());
+        return calculator.getOrthodromicDistance();
+    }
+
+    public static double calculateDistWithElevation(Coord coord1, Coord coord2){
+        double dist = calculateHaversineDist(coord1, coord2);
+        return Math.sqrt(dist * dist + Math.pow(coord1.getZ() - coord2.getZ(), 2));
     }
 
 }

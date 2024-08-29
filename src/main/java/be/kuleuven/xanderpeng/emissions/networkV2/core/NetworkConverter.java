@@ -13,6 +13,10 @@ import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.network.NetworkUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
+import org.matsim.core.network.algorithms.NetworkTransform;
+import org.matsim.core.utils.geometry.CoordinateTransformation;
+import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -36,7 +40,7 @@ public final class NetworkConverter {
 
         this.config = config;
         // Create the reader based on the file type
-        switch (config.FILE_TYPE) {
+        switch (this.config.FILE_TYPE) {
             case "osm":
                 reader = new OsmReader();
                 break;
@@ -47,7 +51,7 @@ public final class NetworkConverter {
                 reader = new GeoJsonReader();
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported file type: " + config.FILE_TYPE);
+                throw new IllegalArgumentException("Unsupported file type: " + this.config.FILE_TYPE);
         }
         // Initialize the configuredTransModes
         config.getModeParamSets().forEach((mode, modeParamSet) -> {
@@ -55,18 +59,7 @@ public final class NetworkConverter {
         });
 
     }
-    /* TODO: 1. Set "oneway" attribute, which should be indicated in the config file
-                1.1. oneway tag-value pairs should be defined in the config file
-                1.2 use a global parameter to indicate whether the network is one-way or two-way; e.g., boolean ONE_WAY = true;
-             2. More options/parameters for the CONNECTED_NETWORK, and thus it is better to create a ParameterSet for it
-                2.1. Users can opt to keep the original network structure -- CONNECTED_NETWORK = false
-                2.2. Users can opt to connect the isolated nodes/links to the nearest node/link -- CONNECTED_NETWORK = true
-                2.3. Users can opt to remove the isolated nodes/links, and only keep the largest connected subnetwork -- CONNECTED_NETWORK = true
-                2.4. Users can opt a threshold to determine whether a node/link is isolated or not, which is a combination strategy of (2.2 & 2.3) -- CONNECTED_NETWORK = true
-                2.5. Users can opt a specific transMode instead of the whole network -- CONNECTED_NETWORK = true
-             4. function: Process Oneway
-             5  function: Process the connected network
-    */
+
     public Network convert() throws IOException {
         LOG.info("Start converting the input network file to MATSim network...");
         // Create matsim network and factory instance
@@ -101,31 +94,34 @@ public final class NetworkConverter {
         });
 
         // Add the interim nodes and links to the MATSim network
-
         interimLinks.forEach((linkId, link) -> {;
             Node fromNode = NetworkUtils.createNode(Id.createNodeId(link.getFromNode().getId()), link.getFromNode().getCoord());
             Node toNode = NetworkUtils.createNode(Id.createNodeId(link.getToNode().getId()), link.getToNode().getCoord());
             network.addNode(fromNode);
             network.addNode(toNode);
-            /* TODO: Here, we should specify the link capacity, freespeed, width, etc. To this end:
-                        1. The field containing capacity, freespeed, width, etc. should be specified in the config file (maybe a new ParameterSet is needed)
-                        2. The capacity, freespeed, width, etc. should be set based on the key-value pairs of the link
-                        3. If there is no tag-value pair for a specific attr, the capacity, freespeed, width, etc. should be set based on the transMode of the link
-                            ATTENTION: a link may have several allowed TransModes, and the value of attr (capacity, freespeed, width, etc.) should be set based on the greatest one.
-
-             */
-            // Create the link by NetworkUtils.createAndAddLink, whether we could configure the attr, since the default value is irrational.
-//            NetworkUtils.createLink(network, Id.createLinkId(linkId), fromNode, toNode);
+            // Create the link. Configure the attr, since the default value is irrational.
+            Map<String, Double> linkAttrs = matchAndGetLinkAttr(link);
+            NetworkUtils.createAndAddLink(network, Id.createLinkId(linkId), fromNode, toNode,
+                    linkAttrs.get("LENGTH_FIELD"), linkAttrs.get("MAX_SPEED_FIELD"),
+                    linkAttrs.get("LANE_CAPACITY_FIELD"), linkAttrs.get("LANE_WIDTH_FIELD"));
+            // TODO: Add user specified reserved_attributes to the link
         });
 
         // Process the connected network
+        processConnectedNetwork(network);
 
-
-
+        // Transform the network into the specified CRS
+        if (this.config.OUTPUT_CRS != null && !this.config.OUTPUT_CRS.isEmpty()) {
+            LOG.info("Transforming the network into the specified CRS: {}", this.config.OUTPUT_CRS);
+            CoordinateTransformation transformation = TransformationFactory.getCoordinateTransformation(
+                    this.config.INPUT_CRS, this.config.OUTPUT_CRS);
+            new NetworkTransform(transformation).run(network);
+        }
         return network;
     }
 
     private void matchLinkMode(NetworkElement.Link link) {
+        boolean isReservedLink = false;
         // Match the transMode of the link based on the key-value pairs and the modeParamSets
         Set<TransMode.Mode> matchedModes = new HashSet<>();
         // Match the transMode based on the key-value pairs
@@ -134,8 +130,20 @@ public final class NetworkConverter {
                 matchedModes.add(transMode.getMode());
             }
         });
-        // If the link is not aligned with any pre-defined transMode, while the KEEP_UNDEFINED_LINK is true, keep the link
+        // If the link is not aligned with any pre-defined transMode, while the KEEP_UNDEFINED_LINK is true
         if (matchedModes.isEmpty() && config.KEEP_UNDEFINED_LINK) {
+            // get the 'other' TransMode
+            TransMode otherTransMode;
+            for (TransMode transMode : configuredTransModes) {
+                if (transMode.getMode().name.equals("other")) {
+                    otherTransMode = transMode;
+                    // Judge if the link is reserved
+
+                }
+            }
+
+
+            // add the 'other' mode to the matchedModes
             matchedModes.add(TransMode.Mode.OTHER);
         }
         // Set the allowed modes for the link
@@ -245,7 +253,88 @@ public final class NetworkConverter {
         interimNodes.put(endNode.getId(), endNode);
         interimLinks.put(lastLink.getId(), lastLink);
     }
+    /*
+    Match and get the key link-related attributes based on the key-value pairs, LinkAttrParamSet, and the allowedTransMode
+     */
+    private Map<String, Double> matchAndGetLinkAttr(NetworkElement.Link link){
+        Map<String, Double> linkAttr = new HashMap<>();
+        // Get the max default capacity, freespeed, width, etc. based on the allowedTransModes
+        Map<String, Double> maxDefaultAttr = new HashMap<>();
+        link.getAllowedModes().forEach(mode -> {
+            this.configuredTransModes.forEach(transMode -> {
+                if (transMode.getMode().equals(mode)){
+                    Double maxFreeSpeed_ = maxDefaultAttr.putIfAbsent("MAX_SPEED_FIELD", transMode.getDefaultMaxSpeed());
+                    if (maxFreeSpeed_ != null){
+                        maxDefaultAttr.put("MAX_SPEED_FIELD", Math.max(maxFreeSpeed_, transMode.getDefaultMaxSpeed()));
+                    }
+                    Double maxCapacity_ = maxDefaultAttr.putIfAbsent("LANE_CAPACITY_FIELD", transMode.getDefaultLaneCapacity());
+                    if (maxCapacity_ != null){
+                        maxDefaultAttr.put("LANE_CAPACITY_FIELD", Math.max(maxCapacity_, transMode.getDefaultLaneCapacity()));
+                    }
+                    Double maxWidth_ = maxDefaultAttr.putIfAbsent("LANE_WIDTH_FIELD", transMode.getDefaultLaneWidth());
+                    if (maxWidth_ != null){
+                        maxDefaultAttr.put("LANE_WIDTH_FIELD", Math.max(maxWidth_, transMode.getDefaultLaneWidth()));
+                    }
+                    Double maxLanes_ = maxDefaultAttr.putIfAbsent("LANES_FIELD", transMode.getDefaultLanes());
+                    if (maxLanes_ != null){
+                        maxDefaultAttr.put("LANES_FIELD", Math.max(maxLanes_, transMode.getDefaultLanes()));
+                    }
+                }
+            });
+        });
 
+
+        // Match the LinkAttrParamSet based on the key-value pairs
+        this.config.getLinkAttrParamSet().getParams().forEach((param, field) -> {
+            // if the key-value pairs contain the field, get the value
+            if (link.getKeyValuePairs().containsKey(field)
+                    && link.getKeyValuePairs().get(field) != null
+                    && !link.getKeyValuePairs().get(field).trim().isEmpty()){
+                try {
+                    linkAttr.put(param, Double.parseDouble(link.getKeyValuePairs().get(field)));
+                } catch (NumberFormatException e){
+                    if (param.equals("LENGTH_FIELD")){
+                        double length;
+                        // if the field is length, calculate the length based on the coordinates of the fromNode and toNode
+                        if (link.getFromNode().getCoord().hasZ()){
+                            length = Utils.calculateDistWithElevation(link.getFromNode().getCoord(), link.getToNode().getCoord());
+                        } else {
+                            length = Utils.calculateHaversineDist(link.getFromNode().getCoord(), link.getToNode().getCoord());
+                    }
+                        linkAttr.put(param, length);
+                }
+                    linkAttr.put(param, maxDefaultAttr.get(param));
+                }
+            } else {
+                linkAttr.put(param, maxDefaultAttr.get(param));
+            }
+        });
+
+        return linkAttr;
+    }
+
+    private void processConnectedNetwork(Network network){
+        // Process the connected network
+        if (config.getConnectedNetworkParamSet().STRONGLY_CONNECTED) {
+            // Process the connected network based on the specified strategy
+            switch (config.getConnectedNetworkParamSet().METHOD) {
+                case "reduce":
+                    // Remove inaccessible nodes and links
+                    MultimodalNetworkCleaner cleaner = new MultimodalNetworkCleaner(network);
+                    Set<String> modes = new HashSet<>();
+                    config.getConnectedNetworkParamSet().MODE.forEach(mode -> modes.add(mode.name));
+                    // make carMode link is not removed
+                    cleaner.run(modes, Set.of("car"));
+                    break;
+                case "insert":
+                    // Remove the disconnected nodes and links
+                    break;
+                case "adapt_mode":
+                    // Remove the nodes and links that are isolated based on the threshold
+                    break;
+            }
+        }
+    }
 
 
 
