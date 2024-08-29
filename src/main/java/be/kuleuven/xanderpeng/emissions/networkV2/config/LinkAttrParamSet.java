@@ -4,6 +4,7 @@ import org.matsim.core.api.internal.MatsimParameters;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class is used to configure the Tags/Keys of link-related parameters (e.g., freespeed, lanes, capacity, etc.) in the KeyValuePais.
@@ -32,8 +33,12 @@ public class LinkAttrParamSet extends ReflectiveConfigGroup implements MatsimPar
     @Parameter
     public String LENGTH_FIELD;
 
-    @Parameter
-    public Map<String, String> INPUT_PARAM_UNIT;
+//    @Parameter
+//    public Map<String, String> INPUT_PARAM_UNIT;
+
+//    @Parameter
+//    @Comment("The reserved fields in the link attributes, the value of these fields will be reserved as link attributes in the output network.")
+//    public Set<String> RESERVED_LINK_FIELDS;
 
     public LinkAttrParamSet() {
         super(GROUP_NAME);
@@ -47,7 +52,6 @@ public class LinkAttrParamSet extends ReflectiveConfigGroup implements MatsimPar
         this.WIDTH_FIELD = widthField;
         this.LENGTH_FIELD = lengthField;
     }
-
 
 }
 

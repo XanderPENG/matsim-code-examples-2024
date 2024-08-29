@@ -43,8 +43,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     @Parameter
     @Comment("""
             If true, the link will be kept although it is not aligned with any pre-defined @TransMode. Otherwise, the link will be removed.
-            Note: The key-value pair for the undefined link should be specified in the `other` ModeParamSet.
-            """)
+            \t\t\t Note: The key-value pair for the undefined link should be specified in the `other` ModeParamSet.""")
     public boolean KEEP_UNDEFINED_LINK;
 
     @Parameter

@@ -14,7 +14,7 @@ public class TransModeFactory {
             .setMode(TransMode.Mode.CAR)
             .addKeyValueMapping(Map.of("highway", "motorway"))
             .addKeyValueMapping(Map.of("highway", "trunk"))
-            .build(), 130 / 3.6, 0.242, 1800, 3.5, 2);
+            .build(), 130 / 3.6, 0.242, 3.5, 2);
 
     public static TransMode PT = new TransMode(TransMode.Mode.PT, new ModeKeyValueMapping.Builder()
             .setMode(TransMode.Mode.PT)
@@ -25,12 +25,12 @@ public class TransModeFactory {
             .addKeyValueMapping(Map.of("route", "light_rail"))
             .addKeyValueMapping(Map.of("route", "subway"))
             .addKeyValueMapping(Map.of("route", "tram"))
-            .build(), 40 / 3.6, 0.142, 1200, 3.5, 1);
+            .build(), 40 / 3.6, 0.142, 3.5, 1);
 
     public static TransMode TRAIN = new TransMode(TransMode.Mode.TRAIN, new ModeKeyValueMapping.Builder()
             .setMode(TransMode.Mode.TRAIN)
             .addKeyValueMapping(Map.of("route", "train"))
-            .build(), 100 / 3.6, 0.542, 100, 5, 1);
+            .build(), 100 / 3.6, 0.542, 5, 1);
 
     public static TransMode BIKE = new TransMode(TransMode.Mode.BIKE, new ModeKeyValueMapping.Builder()
             .setMode(TransMode.Mode.BIKE)
@@ -49,7 +49,7 @@ public class TransModeFactory {
             .addKeyValueMapping(Map.of("highway", "primary"))
             .addKeyValueMapping(Map.of("highway", "trunk"))
             .addKeyValueMapping(Map.of("highway", "motorway"))
-            .build(), 20 / 3.6, 0, 2000, 2, 1);
+            .build(), 20 / 3.6, 0, 2, 1);
 
     public static TransMode WALK = new TransMode(TransMode.Mode.WALK, new ModeKeyValueMapping.Builder()
             .setMode(TransMode.Mode.WALK)
@@ -67,17 +67,17 @@ public class TransModeFactory {
             .addKeyValueMapping(Map.of("highway", "primary"))
             .addKeyValueMapping(Map.of("highway", "trunk"))
             .addKeyValueMapping(Map.of("highway", "motorway"))
-            .build(), 5 / 3.6, 0, 5000, 1, 1);
+            .build(), 5 / 3.6, 0, 1, 1);
 
     public static TransMode SHIP = new TransMode(TransMode.Mode.SHIP, new ModeKeyValueMapping.Builder()
             .setMode(TransMode.Mode.SHIP)
             .addKeyValueMapping(Map.of("route", "ferry"))
-            .build(), 20 / 3.6, 0.142, 1000, 10, 1);
+            .build(), 20 / 3.6, 0.142,  10, 1);
 
     public static TransMode OTHER = new TransMode(TransMode.Mode.OTHER, new ModeKeyValueMapping.Builder()
             .setMode(TransMode.Mode.OTHER)
             .addKeyValueMapping(Map.of("*", "*"))
-            .build(), 20 / 3.6, 0.142, 1000, 3.5, 1);
+            .build(), 20 / 3.6, 0.142, 3.5, 1);
 
 
 

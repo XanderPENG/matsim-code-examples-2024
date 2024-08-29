@@ -20,15 +20,15 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
     public String MODE_NAME;
 
     @Parameter
+    @Comment("The max speed of the mode-related link (unit: m/s)")
     public double FREE_SPEED;
 
     @Parameter
+    @Comment("The emission factor of the mode.")
     public double EMISSION_FACTOR;
 
     @Parameter
-    public double LANE_CAPACITY;
-
-    @Parameter
+    @Comment("The default single-lane width (unit: meter)")
     public double LANE_WIDTH;
 
     @Parameter
@@ -94,7 +94,6 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
         this.MODE_NAME = transMode.getMode().name;
         this.FREE_SPEED = transMode.getDefaultMaxSpeed();
         this.EMISSION_FACTOR = transMode.getDefaultEmissionFactor();
-        this.LANE_CAPACITY = transMode.getDefaultLaneCapacity();
         this.LANE_WIDTH = transMode.getDefaultLaneWidth();
         this.LANES = transMode.getDefaultLanes();
         this.KEY_VALUE_MAPPING = transMode.getModeKeyValueMapping().getKeyValueMapping();
@@ -102,13 +101,12 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
 
     // Constructor for totally customized params
     public ModeParamSet(TransMode.Mode mode, double freeSpeed, double emissionFactor,
-                        double laneCapacity, double laneWidth, double lanes,
+                        double laneWidth, double lanes,
                         Set<Map<String, String>> keyValueMapping) {
         super(GROUP_NAME);
         this.MODE_NAME = mode.name;
         this.FREE_SPEED = freeSpeed;
         this.EMISSION_FACTOR = emissionFactor;
-        this.LANE_CAPACITY = laneCapacity;
         this.LANE_WIDTH = laneWidth;
         this.LANES = lanes;
         this.KEY_VALUE_MAPPING = keyValueMapping;
@@ -121,49 +119,49 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
                         .setMode(TransMode.Mode.CAR)
                         .setKeyValueMapping(KEY_VALUE_MAPPING)
                         .build(),
-                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+                        FREE_SPEED, EMISSION_FACTOR, LANE_WIDTH, LANES);
             }
             case "pt" -> {
                 return new TransMode(TransMode.Mode.PT, new ModeKeyValueMapping.Builder()
                         .setMode(TransMode.Mode.PT)
                         .setKeyValueMapping(KEY_VALUE_MAPPING)
                         .build(),
-                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+                        FREE_SPEED, EMISSION_FACTOR, LANE_WIDTH, LANES);
             }
             case "train" -> {
                 return new TransMode(TransMode.Mode.TRAIN, new ModeKeyValueMapping.Builder()
                         .setMode(TransMode.Mode.TRAIN)
                         .setKeyValueMapping(KEY_VALUE_MAPPING)
                         .build(),
-                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+                        FREE_SPEED, EMISSION_FACTOR, LANE_WIDTH, LANES);
             }
             case "bike" -> {
                 return new TransMode(TransMode.Mode.BIKE, new ModeKeyValueMapping.Builder()
                         .setMode(TransMode.Mode.BIKE)
                         .setKeyValueMapping(KEY_VALUE_MAPPING)
                         .build(),
-                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+                        FREE_SPEED, EMISSION_FACTOR, LANE_WIDTH, LANES);
             }
             case "walk" -> {
                 return new TransMode(TransMode.Mode.WALK, new ModeKeyValueMapping.Builder()
                         .setMode(TransMode.Mode.WALK)
                         .setKeyValueMapping(KEY_VALUE_MAPPING)
                         .build(),
-                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+                        FREE_SPEED, EMISSION_FACTOR, LANE_WIDTH, LANES);
             }
             case "ship" -> {
                 return new TransMode(TransMode.Mode.SHIP, new ModeKeyValueMapping.Builder()
                         .setMode(TransMode.Mode.SHIP)
                         .setKeyValueMapping(KEY_VALUE_MAPPING)
                         .build(),
-                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+                        FREE_SPEED, EMISSION_FACTOR, LANE_WIDTH, LANES);
             }
             case "other" -> {
                 return new TransMode(TransMode.Mode.OTHER, new ModeKeyValueMapping.Builder()
                         .setMode(TransMode.Mode.OTHER)
                         .setKeyValueMapping(KEY_VALUE_MAPPING)
                         .build(),
-                        FREE_SPEED, EMISSION_FACTOR, LANE_CAPACITY, LANE_WIDTH, LANES);
+                        FREE_SPEED, EMISSION_FACTOR, LANE_WIDTH, LANES);
             }
         }
         throw new IllegalArgumentException("Unsupported mode: " + MODE_NAME);

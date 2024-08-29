@@ -178,6 +178,11 @@ public final class NetworkElement {
             this.keyValuePairs.putAll(keyValuePairs);
         }
 
+        public static double calculateLinkCapacity(double laneWidth, double lanes){
+            return laneWidth * lanes;
+
+        }
+
         @Override
         public boolean equals(Object obj){
             if(obj == this){

@@ -30,13 +30,13 @@ public class RunCreateConfig {
                 .addKeyValueMapping(Map.of("highway", "cycleway"))
                 .addKeyValueMapping(Map.of("bicycle", "yes"))
                 .build(),
-                20 / 3.6, 0, 2000, 2, 1);
+                20 / 3.6, 0,  2, 1);
 
         TransMode carMode = new TransMode(TransMode.Mode.CAR, new ModeKeyValueMapping.Builder()
                 .addKeyValueMapping(Map.of("highway", "motorway"))
                 .addKeyValueMapping(Map.of("highway", "trunk"))
                 .build(),
-                130 / 3.6, 0.242, 1800, 3.5, 2);
+                130 / 3.6, 0.242,  3.5, 2);
 
         TransMode ptMode = new TransMode(TransMode.Mode.PT, new ModeKeyValueMapping.Builder()
                 .addKeyValueMapping(Map.of("route", "bus"))
@@ -47,19 +47,19 @@ public class RunCreateConfig {
                 .addKeyValueMapping(Map.of("route", "subway"))
                 .addKeyValueMapping(Map.of("route", "tram"))
                 .build(),
-                40 / 3.6, 0.142, 1200, 3.5, 1);
+                40 / 3.6, 0.142, 3.5, 1);
 
         TransMode walkMode = new TransMode(TransMode.Mode.WALK, new ModeKeyValueMapping.Builder()
                 .addKeyValueMapping(Map.of("highway", "footway"))
                 .addKeyValueMapping(Map.of("highway", "pedestrian"))
                 .addKeyValueMapping(Map.of("highway", "steps"))
                 .build(),
-                5 / 3.6, 0, 5000, 1, 1);
+                5 / 3.6, 0, 1, 1);
 
         TransMode otherMode = new TransMode(TransMode.Mode.OTHER, new ModeKeyValueMapping.Builder()
                 .addKeyValueMapping(Map.of("highway", "*"))
                 .build(),
-                20 / 3.6, 0, 2000, 2, 1);
+                20 / 3.6, 0, 2, 1);
 
         // create customized ModeParamSets
         ModeParamSet bikeParamSet = new ModeParamSet(bikeMode);

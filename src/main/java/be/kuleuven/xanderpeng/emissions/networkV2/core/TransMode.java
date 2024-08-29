@@ -11,19 +11,19 @@ public final class TransMode {
 
     private final double defaultMaxSpeed;
     private final double defaultEmissionFactor;
-    private final double defaultLaneCapacity;
+//    private final double defaultLaneCapacity;
     private final double defaultLaneWidth;
     private final double defaultLanes;
 
 
     public TransMode(Mode mode, ModeKeyValueMapping keyValueMapping,
-                     double defaultMaxSpeed, double defaultEmissionFactor, double defaultLaneCapacity,
+                     double defaultMaxSpeed, double defaultEmissionFactor,
                      double defaultLaneWidth, double defaultLanes) {
         this.mode = mode;
         this.keyValueMapping = keyValueMapping;
         this.defaultMaxSpeed = defaultMaxSpeed;
         this.defaultEmissionFactor = defaultEmissionFactor;
-        this.defaultLaneCapacity = defaultLaneCapacity;
+//        this.defaultLaneCapacity = defaultLaneCapacity;
         this.defaultLaneWidth = defaultLaneWidth;
         this.defaultLanes = defaultLanes;
     }
@@ -45,9 +45,9 @@ public final class TransMode {
         return defaultEmissionFactor;
     }
 
-    public double getDefaultLaneCapacity() {
-        return defaultLaneCapacity;
-    }
+//    public double getDefaultLaneCapacity() {
+//        return defaultLaneCapacity;
+//    }
 
     public double getDefaultLaneWidth() {
         return defaultLaneWidth;

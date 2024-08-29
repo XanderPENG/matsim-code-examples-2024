@@ -42,7 +42,7 @@ public class TransModeTest {
 
         LOG.info("carMode pre-defined key-values: {}",carMapping.getKeyValueMapping());
 
-        TransMode carMode = new TransMode(TransMode.Mode.CAR, carMapping, 130 / 3.6, 0.242, 1800, 3.5, 2);
+        TransMode carMode = new TransMode(TransMode.Mode.CAR, carMapping, 130 / 3.6, 0.242, 3.5, 2);
 
         NetworkElement.Link link = new NetworkElement.Link("1",
                 new NetworkElement.Node("1", 0, 0), new NetworkElement.Node("2", 0, 1));

@@ -7,6 +7,7 @@ import be.kuleuven.xanderpeng.emissions.networkV2.readers.Reader;
 import be.kuleuven.xanderpeng.emissions.networkV2.readers.ShpReader;
 import be.kuleuven.xanderpeng.emissions.networkV2.tools.Utils;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
@@ -101,10 +102,21 @@ public final class NetworkConverter {
             network.addNode(toNode);
             // Create the link. Configure the attr, since the default value is irrational.
             Map<String, Double> linkAttrs = matchAndGetLinkAttr(link);
-            NetworkUtils.createAndAddLink(network, Id.createLinkId(linkId), fromNode, toNode,
-                    linkAttrs.get("LENGTH_FIELD"), linkAttrs.get("MAX_SPEED_FIELD"),
-                    linkAttrs.get("LANE_CAPACITY_FIELD"), linkAttrs.get("LANE_WIDTH_FIELD"));
+            // Get/Calculate the capacity of the link; TODO: This could be optimized in the future
+            double capacity;
+            if (linkAttrs.get("CAPACITY_FIELD") == null){
+                capacity = (linkAttrs.get("MAX_SPEED_FIELD") < 60)
+                        ? (linkAttrs.get("LANES_FIELD") * 1000 + linkAttrs.get("MAX_SPEED_FIELD") * 20)
+                        : 2200;
+            } else {
+                capacity = linkAttrs.get("CAPACITY_FIELD");
+            }
+            Link matsimLink = NetworkUtils.createAndAddLink(network, Id.createLinkId(linkId), fromNode, toNode,
+                    linkAttrs.get("LENGTH_FIELD"), linkAttrs.get("MAX_SPEED_FIELD"), capacity
+                    , linkAttrs.get("LANE_WIDTH_FIELD"));
             // TODO: Add user specified reserved_attributes to the link
+
+
         });
 
         // Process the connected network
@@ -251,10 +263,6 @@ public final class NetworkConverter {
                     if (maxFreeSpeed_ != null){
                         maxDefaultAttr.put("MAX_SPEED_FIELD", Math.max(maxFreeSpeed_, transMode.getDefaultMaxSpeed()));
                     }
-                    Double maxCapacity_ = maxDefaultAttr.putIfAbsent("LANE_CAPACITY_FIELD", transMode.getDefaultLaneCapacity());
-                    if (maxCapacity_ != null){
-                        maxDefaultAttr.put("LANE_CAPACITY_FIELD", Math.max(maxCapacity_, transMode.getDefaultLaneCapacity()));
-                    }
                     Double maxWidth_ = maxDefaultAttr.putIfAbsent("LANE_WIDTH_FIELD", transMode.getDefaultLaneWidth());
                     if (maxWidth_ != null){
                         maxDefaultAttr.put("LANE_WIDTH_FIELD", Math.max(maxWidth_, transMode.getDefaultLaneWidth()));
@@ -266,7 +274,6 @@ public final class NetworkConverter {
                 }
             });
         });
-
 
         // Match the LinkAttrParamSet based on the key-value pairs
         this.config.getLinkAttrParamSet().getParams().forEach((param, field) -> {
