@@ -130,22 +130,6 @@ public final class NetworkConverter {
                 matchedModes.add(transMode.getMode());
             }
         });
-        // If the link is not aligned with any pre-defined transMode, while the KEEP_UNDEFINED_LINK is true
-        if (matchedModes.isEmpty() && config.KEEP_UNDEFINED_LINK) {
-            // get the 'other' TransMode
-            TransMode otherTransMode;
-            for (TransMode transMode : configuredTransModes) {
-                if (transMode.getMode().name.equals("other")) {
-                    otherTransMode = transMode;
-                    // Judge if the link is reserved
-
-                }
-            }
-
-
-            // add the 'other' mode to the matchedModes
-            matchedModes.add(TransMode.Mode.OTHER);
-        }
         // Set the allowed modes for the link
         link.addAllowedModes(matchedModes);
     }

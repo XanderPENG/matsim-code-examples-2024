@@ -20,7 +20,7 @@ public class RunCreateConfig {
 
         // create a customized config
         NetworkConverterConfigGroup config = new NetworkConverterConfigGroup("shp", "EPSG:4326", Utils.outputCrs, Utils.aldiNetworkInput,
-                false, true, "highway",
+                false, true,
                 Utils.networkOutputDir + "multimodalNetwork.xml",
                 "NA", "NA",
                 true,  Map.of("oneway", "yes"));
@@ -56,14 +56,20 @@ public class RunCreateConfig {
                 .build(),
                 5 / 3.6, 0, 5000, 1, 1);
 
+        TransMode otherMode = new TransMode(TransMode.Mode.OTHER, new ModeKeyValueMapping.Builder()
+                .addKeyValueMapping(Map.of("highway", "*"))
+                .build(),
+                20 / 3.6, 0, 2000, 2, 1);
+
         // create customized ModeParamSets
         ModeParamSet bikeParamSet = new ModeParamSet(bikeMode);
         ModeParamSet carParamSet = new ModeParamSet(carMode);
         ModeParamSet ptParamSet = new ModeParamSet(ptMode);
         ModeParamSet walkParamSet = new ModeParamSet(walkMode);
+        ModeParamSet otherParamSet = new ModeParamSet(otherMode);
 
         // create a customized ConnectedNetworkParamSet
-        Set<TransMode.Mode> modes = Set.of(TransMode.Mode.CAR, TransMode.Mode.PT, TransMode.Mode.BIKE, TransMode.Mode.WALK);
+        Set<TransMode.Mode> modes = Set.of(TransMode.Mode.CAR, TransMode.Mode.PT, TransMode.Mode.BIKE, TransMode.Mode.WALK, TransMode.Mode.OTHER);
         ConnectedNetworkParamSet connectedNetworkParamSet = new ConnectedNetworkParamSet(true, modes, "reduce");
 
         // create a customized LinkAttrParamSet
@@ -74,6 +80,7 @@ public class RunCreateConfig {
         config.addParameterSet(carParamSet);
         config.addParameterSet(ptParamSet);
         config.addParameterSet(walkParamSet);
+        config.addParameterSet(otherParamSet);
         config.addParameterSet(connectedNetworkParamSet);
         config.addParameterSet(linkAttrParamSet);
 

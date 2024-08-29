@@ -57,7 +57,6 @@ public final class TransMode {
         return defaultLanes;
     }
 
-    // TODO: Optimize the matching process; create/enable a fuzzy matching function (Map to Map) in the Utils class
     public boolean matchTransMode(Map<String, String> keyValuePairs) {
         boolean match = false;
         for (Map<String, String> mapping : this.keyValueMapping.getKeyValueMapping()) {
@@ -81,6 +80,50 @@ public final class TransMode {
             }
         }
         return match;  // if there is no any matched mapping, return false
+    }
+
+    public boolean matchLinkTransMode(NetworkElement.Link link) {
+        Map<String, String> keyValuePairs = link.getKeyValuePairs();
+        final boolean[] match = {false};
+        // outer loop for each mapping
+        for (Map<String, String> mapping : this.keyValueMapping.getKeyValueMapping()){
+            // inner loop for each key-value pair in the mapping
+            for (Map.Entry<String, String> entry : mapping.entrySet()) {
+                String key = entry.getKey().trim();
+                String value = entry.getValue().trim();
+                // if both key and value are "*"
+                if (key.equals("*") && value.equals("*")) {
+                    match[0] = true;
+                    break;
+                } else if (key.equals("*")) {
+                    if (keyValuePairs.containsValue(value)) {
+                        match[0] = true;
+                    } else {
+                        match[0] = false;
+                        break;
+                    }
+                } else if (value.equals("*")) {
+                    if (keyValuePairs.containsKey(key)) {
+                        match[0] = true;
+                    } else {
+                        match[0] = false;
+                        break;
+                    }
+                } else {
+                    if (keyValuePairs.containsKey(key) && keyValuePairs.get(key).equals(value)) {
+                        match[0] = true;
+                    } else {
+                        match[0] = false;
+                        break;
+                    }
+                }
+            }
+            // if the link keyValuePairs match successfully with the mapping (any one of the keyValueMapping), break the loop
+            if (match[0]) {
+                break;
+            }
+        }
+        return match[0];
     }
 
     public enum Mode {

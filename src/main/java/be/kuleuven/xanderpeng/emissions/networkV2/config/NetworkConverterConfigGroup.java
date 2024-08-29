@@ -1,6 +1,8 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.config;
 
 import be.kuleuven.xanderpeng.emissions.networkV2.tools.TransModeFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
@@ -13,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
+    private static final Logger LOG = LogManager.getLogger(NetworkConverterConfigGroup.class);
 
     public static final String GROUP_NAME = "multimodalNetworkConverter";
     private final Map<String, ModeParamSet> modeParamSets = new HashMap<>();
@@ -38,12 +41,11 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     public boolean KEEP_DETAILED_LINK;
 
     @Parameter
-    @Comment("If true, the link will be kept although it is not aligned with any pre-defined @TransMode.")
+    @Comment("""
+            If true, the link will be kept although it is not aligned with any pre-defined @TransMode. Otherwise, the link will be removed.
+            Note: The key-value pair for the undefined link should be specified in the `other` ModeParamSet.
+            """)
     public boolean KEEP_UNDEFINED_LINK;
-
-    @Parameter
-    @Comment("The key for the to-be-reserved links that are not aligned with any pre-defined @TransMode.")
-    public String UNDEFINED_LINK_KEY;
 
     @Parameter
     public String OUTPUT_NETWORK_FILE;
@@ -72,7 +74,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     }
 
     public NetworkConverterConfigGroup(String filetype, String inputCRS, String outputCRS, String inputNetworkFile,
-                                       boolean keepDetailedLink, boolean keepUndefinedLink, String undefinedLinkKey,String outputNetworkFile,
+                                       boolean keepDetailedLink, boolean keepUndefinedLink, String outputNetworkFile,
                                        String outputShpFile, String outputGeojsonFile, boolean oneway,
                                        Map<String, String> onewayKeyValuePair) {
         super(GROUP_NAME);
@@ -82,7 +84,6 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         this.INPUT_NETWORK_FILE = inputNetworkFile;
         this.KEEP_DETAILED_LINK = keepDetailedLink;
         this.KEEP_UNDEFINED_LINK = keepUndefinedLink;
-        this.UNDEFINED_LINK_KEY = undefinedLinkKey;
         this.OUTPUT_NETWORK_FILE = outputNetworkFile;
         this.OUTPUT_SHP_FILE = outputShpFile;
         this.OUTPUT_GEOJSON_FILE = outputGeojsonFile;
@@ -113,7 +114,6 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         config.INPUT_NETWORK_FILE = "yours/input/network/file";
         config.KEEP_DETAILED_LINK = true;
         config.KEEP_UNDEFINED_LINK = true;
-        config.UNDEFINED_LINK_KEY = "highway";
         config.OUTPUT_NETWORK_FILE = "yours/output/network/file";
         config.ONEWAY = false;
         config.OUTPUT_SHP_FILE = "NA";
@@ -189,6 +189,8 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
 
     // Write config.xml file
     public void writeConfigFile(String filename) {
+        LOG.info("Start writing config file: {}", filename);
+
         Config defaultConfig = ConfigUtils.createConfig();
         // delete all default modules
         Set<String> defaultModules = Set.copyOf(defaultConfig.getModules().keySet());
@@ -198,6 +200,8 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         // Add the current module into the config
         defaultConfig.addModule(NetworkConverterConfigGroup.this);
         ConfigUtils.writeConfig(defaultConfig, filename);
+
+        LOG.info("Finish writing config file: {}", filename);
     }
 
     @StringGetter("ONEWAY_KEY_VALUE_PAIR")
