@@ -132,7 +132,8 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
 
         config.addParameterSet(new ConnectedNetworkParamSet(true,
                 Set.of(TransMode.Mode.CAR, TransMode.Mode.PT, TransMode.Mode.BIKE, TransMode.Mode.WALK, TransMode.Mode.OTHER), "reduce"));
-        config.addParameterSet(new LinkAttrParamSet("speed", "capacity", "lanes", "width", "NA"));
+        config.addParameterSet(new LinkAttrParamSet("speed", "capacity", "lanes", "width", "NA",
+                Set.of("surface", "lit"), Map.of("MAX_SPEED_FIELD", "m/s", "WIDTH_FIELD", "m", "LENGTH_FIELD", "m")));
         return config;
     }
 
@@ -148,7 +149,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         };
     }
 
-    // Load config file; TODO: Switch to V2 reader
+    // Load config file; Switch to V2 reader in the future; However, there is no access to the reader in the current version
     public static NetworkConverterConfigGroup loadConfigFile(String filename){
         Config config = ConfigUtils.loadConfig(filename, new NetworkConverterConfigGroup());
         NetworkConverterConfigGroup configGroup = ConfigUtils.addOrGetModule(config, NetworkConverterConfigGroup.GROUP_NAME, NetworkConverterConfigGroup.class);
@@ -206,7 +207,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     @StringGetter("ONEWAY_KEY_VALUE_PAIR")
     public String getOnewayKeyValuePair() {
         StringBuilder sb = new StringBuilder();
-        ONEWAY_KEY_VALUE_PAIR.forEach((key, value) -> sb.append(key).append(":").append(value));
+        this.ONEWAY_KEY_VALUE_PAIR.forEach((key, value) -> sb.append(key).append(":").append(value));
         return sb.toString().trim();
     }
 
@@ -215,7 +216,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         String[] keyValuePair= onewayKeyValuePairs.split(":");
 
         if (keyValuePair.length == 2) {
-            ONEWAY_KEY_VALUE_PAIR.put(keyValuePair[0].trim(), keyValuePair[1].trim());
+            this.ONEWAY_KEY_VALUE_PAIR.put(keyValuePair[0].trim(), keyValuePair[1].trim());
         }
     }
 

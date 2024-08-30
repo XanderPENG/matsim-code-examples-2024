@@ -73,7 +73,8 @@ public class RunCreateConfig {
         ConnectedNetworkParamSet connectedNetworkParamSet = new ConnectedNetworkParamSet(true, modes, "reduce");
 
         // create a customized LinkAttrParamSet
-        LinkAttrParamSet linkAttrParamSet = new LinkAttrParamSet("max_speed", "capacity", "lanes", "width", "length");
+        LinkAttrParamSet linkAttrParamSet = new LinkAttrParamSet("max_speed", "capacity", "lanes", "width", "length",
+                Set.of("surface", "lit"), Map.of("MAX_SPEED_FIELD", "m/s", "WIDTH_FIELD", "m", "LENGTH_FIELD", "m"));
 
         // Add customized Parameter sets
         config.addParameterSet(bikeParamSet);

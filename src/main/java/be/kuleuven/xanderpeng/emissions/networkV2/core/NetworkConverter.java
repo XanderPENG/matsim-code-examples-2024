@@ -102,6 +102,8 @@ public final class NetworkConverter {
             network.addNode(toNode);
             // Create the link. Configure the attr, since the default value is irrational.
             Map<String, Double> linkAttrs = matchAndGetLinkAttr(link);
+            // Check/convert the unit of the link attributes
+            checkOrConvertUnit(linkAttrs);
             // Get/Calculate the capacity of the link; TODO: This could be optimized in the future
             double capacity;
             if (linkAttrs.get("CAPACITY_FIELD") == null){
@@ -114,9 +116,10 @@ public final class NetworkConverter {
             Link matsimLink = NetworkUtils.createAndAddLink(network, Id.createLinkId(linkId), fromNode, toNode,
                     linkAttrs.get("LENGTH_FIELD"), linkAttrs.get("MAX_SPEED_FIELD"), capacity
                     , linkAttrs.get("LANE_WIDTH_FIELD"));
-            // TODO: Add user specified reserved_attributes to the link
-
-
+            // Add the reserved link attributes
+            this.config.getLinkAttrParamSet().RESERVED_LINK_FIELDS.forEach(field -> {
+                matsimLink.getAttributes().putAttribute(field, link.getKeyValuePairs().getOrDefault(field, "NA"));
+            });
         });
 
         // Process the connected network
@@ -163,7 +166,6 @@ public final class NetworkConverter {
             return null;
         }
     }
-
 
     // Count the node occurrence in the links
     private Map<String, Integer> countNodeRef() {
@@ -325,6 +327,19 @@ public final class NetworkConverter {
                     break;
             }
         }
+    }
+
+    private void checkOrConvertUnit(Map<String, Double> linkAttr){
+        assert this.config.getLinkAttrParamSet().INPUT_PARAM_UNIT != null;
+        assert !this.config.getLinkAttrParamSet().INPUT_PARAM_UNIT.isEmpty();
+        this.config.getLinkAttrParamSet().INPUT_PARAM_UNIT.forEach((param, unit) -> {
+            switch (unit.trim()) {
+                case "km" -> linkAttr.put(param, linkAttr.get(param) * 1000);
+                case "km/h" -> linkAttr.put(param, linkAttr.get(param) / 3.6);
+                case "m/s", "m" -> linkAttr.put(param, linkAttr.get(param));
+                default -> throw new IllegalArgumentException("Unsupported unit: " + unit);
+            }
+        });
     }
 
 
