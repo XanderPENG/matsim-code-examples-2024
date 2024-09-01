@@ -1,10 +1,6 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.core;
 
-
-import be.kuleuven.xanderpeng.emissions.networkV2.tools.Utils;
 import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.Id;
-
 
 import java.util.*;
 
@@ -61,24 +57,24 @@ public final class NetworkElement {
 
         @Override
         public String getId(){
-            return id;
+            return this.id;
         }
 
         public Coord getCoord(){
-            return coord;
+            return this.coord;
         }
 
         public Map<String, Link> getRelatedLinks(){
-            return relatedLinks;
+            return this.relatedLinks;
         }
 
         public void addRelatedLink(Link link){
-            relatedLinks.put(link.getId(), link);
+            this.relatedLinks.put(link.getId(), link);
         }
 
         public void addRelatedLinks(Set<Link> links){
             for(Link link : links){
-                relatedLinks.put(link.getId(), link);
+                this.relatedLinks.put(link.getId(), link);
             }
         }
 
@@ -118,23 +114,23 @@ public final class NetworkElement {
         }
 
         public String getId(){
-            return id;
+            return this.id;
         }
 
         public Node getFromNode(){
-            return fromNode;
+            return this.fromNode;
         }
 
         public Node getToNode(){
-            return toNode;
+            return this.toNode;
         }
 
         public LinkedHashMap<String, Node> getComposedNodes(){
-            return composedNodes;
+            return this.composedNodes;
         }
 
         public Set<TransMode.Mode> getAllowedModes(){
-            return allowedModes;
+            return this.allowedModes;
         }
 
 
@@ -145,33 +141,33 @@ public final class NetworkElement {
         }
 
         public void addComposedNode(Node node){
-            composedNodes.put(node.getId(), node);
+            this.composedNodes.put(node.getId(), node);
         }
 
         public void addComposedNodes(Set<Node> nodes){
             for(Node node : nodes){
-                composedNodes.put(node.getId(), node);
+                this.composedNodes.put(node.getId(), node);
             }
         }
 
         public void addComposedNodes(LinkedHashMap<String, Node> nodes){
-            composedNodes.putAll(nodes);
+            this.composedNodes.putAll(nodes);
         }
 
         public void addAllowedMode(TransMode.Mode mode){
-            allowedModes.add(mode);
+            this.allowedModes.add(mode);
         }
 
         public void addAllowedModes(Set<TransMode.Mode> modes){
-            allowedModes.addAll(modes);
+            this.allowedModes.addAll(modes);
         }
 
         public Map<String, String> getKeyValuePairs(){
-            return keyValuePairs;
+            return this.keyValuePairs;
         }
 
         public void addKeyValuePair(String key, String value){
-            keyValuePairs.put(key, value);
+            this.keyValuePairs.put(key, value);
         }
 
         public void setKeyValuePairs(Map<String, String> keyValuePairs){

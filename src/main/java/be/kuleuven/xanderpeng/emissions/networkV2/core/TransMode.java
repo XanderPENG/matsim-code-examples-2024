@@ -30,19 +30,19 @@ public final class TransMode {
 
 
     public Mode getMode() {
-        return mode;
+        return this.mode;
     }
 
     public ModeKeyValueMapping getModeKeyValueMapping() {
-        return keyValueMapping;
+        return this.keyValueMapping;
     }
 
     public double getDefaultMaxSpeed() {
-        return defaultMaxSpeed;
+        return this.defaultMaxSpeed;
     }
 
     public double getDefaultEmissionFactor() {
-        return defaultEmissionFactor;
+        return this.defaultEmissionFactor;
     }
 
 //    public double getDefaultLaneCapacity() {
@@ -50,11 +50,11 @@ public final class TransMode {
 //    }
 
     public double getDefaultLaneWidth() {
-        return defaultLaneWidth;
+        return this.defaultLaneWidth;
     }
 
     public double getDefaultLanes() {
-        return defaultLanes;
+        return this.defaultLanes;
     }
 
     public boolean matchTransMode(Map<String, String> keyValuePairs) {

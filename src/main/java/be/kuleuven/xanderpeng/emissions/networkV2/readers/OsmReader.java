@@ -14,10 +14,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * This class is used to read the OSM file (.pbf format) and convert it to raw nodes and links.
+ * TODO: Process the OSM relation to get the PT-related information
+ */
 public class OsmReader implements OsmHandler, Reader {
 
     // The raw nodes and links from the OSM file
@@ -40,7 +44,7 @@ public class OsmReader implements OsmHandler, Reader {
         Map<String, String> tagValuePairs = OsmModelUtil.getTagsAsMap(osmWay);
         // Get all the node ids of the way
         int numNodes = osmWay.getNumberOfNodes();
-        Set<Long> nodeIds = new HashSet<>();
+        Set<Long> nodeIds = new LinkedHashSet<>();
         for(int i = 0; i < numNodes; i++){
             nodeIds.add(osmWay.getNodeId(i));
         }
@@ -61,7 +65,7 @@ public class OsmReader implements OsmHandler, Reader {
     }
 
     @Override
-    public void read(String file) throws IOException {
+    public void read(String file) {
 
         // Read the PBF file
         try (InputStream inputStream = new FileInputStream(file)) {

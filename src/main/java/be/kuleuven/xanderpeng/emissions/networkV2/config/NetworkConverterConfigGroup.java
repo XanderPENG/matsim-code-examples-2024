@@ -1,5 +1,6 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.config;
 
+import be.kuleuven.xanderpeng.emissions.networkV2.core.TransMode;
 import be.kuleuven.xanderpeng.emissions.networkV2.tools.TransModeFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -7,8 +8,6 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigGroup;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.ReflectiveConfigGroup;
-
-import be.kuleuven.xanderpeng.emissions.networkV2.core.TransMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
              \t\t\t which means that the traffic can only flow in specified direction. Otherwise, the traffic can flow in both directions of the whole network.""")
     public boolean ONEWAY;
     @Comment("The key-value mapping for the specific mode; the format should be like a map (e.g., 'oneway:yes')")
-    public Map<String, String> ONEWAY_KEY_VALUE_PAIR;
+    public Map<String, String> ONEWAY_KEY_VALUE_PAIR = new HashMap<>();
 
 
     public NetworkConverterConfigGroup() {
@@ -92,15 +91,15 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
     }
 
     public Map<String, ModeParamSet> getModeParamSets() {
-        return modeParamSets;
+        return this.modeParamSets;
     }
 
     public ConnectedNetworkParamSet getConnectedNetworkParamSet() {
-        return connectedNetworkParamSet;
+        return this.connectedNetworkParamSet;
     }
 
     public LinkAttrParamSet getLinkAttrParamSet() {
-        return linkAttrParamSet;
+        return this.linkAttrParamSet;
     }
 
 
@@ -155,6 +154,7 @@ public class NetworkConverterConfigGroup extends ReflectiveConfigGroup {
         NetworkConverterConfigGroup configGroup = ConfigUtils.addOrGetModule(config, NetworkConverterConfigGroup.GROUP_NAME, NetworkConverterConfigGroup.class);
         configGroup.readParameterSets(ModeParamSet.GROUP_NAME);
         configGroup.readParameterSets(ConnectedNetworkParamSet.GROUP_NAME);
+        configGroup.readParameterSets(LinkAttrParamSet.GROUP_NAME);
         return configGroup;
     }
 

@@ -6,20 +6,19 @@ import be.kuleuven.xanderpeng.emissions.networkV2.readers.OsmReader;
 import be.kuleuven.xanderpeng.emissions.networkV2.readers.Reader;
 import be.kuleuven.xanderpeng.emissions.networkV2.readers.ShpReader;
 import be.kuleuven.xanderpeng.emissions.networkV2.tools.Utils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.NetworkFactory;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.core.network.NetworkUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.matsim.core.network.algorithms.MultimodalNetworkCleaner;
 import org.matsim.core.network.algorithms.NetworkTransform;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -61,7 +60,7 @@ public final class NetworkConverter {
 
     }
 
-    public Network convert() throws IOException {
+    public Network convert() {
         LOG.info("Start converting the input network file to MATSim network...");
         // Create matsim network and factory instance
         Network network = NetworkUtils.createNetwork();
@@ -73,9 +72,13 @@ public final class NetworkConverter {
         // Process the link by a for-loop
         Map<String, Integer> nodeRefCount = countNodeRef();
 
-        reader.getRawLinks().forEach((linkId, link) -> {
+        for (NetworkElement.Link link : reader.getRawLinks().values()) {
             // match the TransMode of the link
             matchLinkMode(link);
+            // if link.getAllowModes() is empty, remove the link
+            if (link.getAllowedModes().isEmpty() || link.getAllowedModes() == null){
+                continue;
+            }
             // Process the oneway attribute of the link
             NetworkElement.Link reversedLink = processOneway(link);
             // Split the link and store the interim nodes and links
@@ -92,14 +95,29 @@ public final class NetworkConverter {
                     splitLinkAtIntersections(reversedLink, nodeRefCount);
                 }
             }
-        });
-
+        }
+        Map<String, Node> addedNodes = new HashMap<>();
+        Map<String, Link> addedLinks = new HashMap<>();
         // Add the interim nodes and links to the MATSim network
-        interimLinks.forEach((linkId, link) -> {;
-            Node fromNode = NetworkUtils.createNode(Id.createNodeId(link.getFromNode().getId()), link.getFromNode().getCoord());
-            Node toNode = NetworkUtils.createNode(Id.createNodeId(link.getToNode().getId()), link.getToNode().getCoord());
-            network.addNode(fromNode);
-            network.addNode(toNode);
+        interimLinks.forEach((linkId, link) -> {
+            Node fromNode;
+            if (!addedNodes.containsKey(link.getFromNode().getId())){
+                 fromNode = NetworkUtils.createNode(Id.createNodeId(link.getFromNode().getId()), link.getFromNode().getCoord());
+                network.addNode(fromNode);
+                addedNodes.put(link.getFromNode().getId(), fromNode);
+            } else {
+                fromNode = addedNodes.get(link.getFromNode().getId());
+            }
+
+            Node toNode;
+            if (!addedNodes.containsKey(link.getToNode().getId())){
+                toNode = NetworkUtils.createNode(Id.createNodeId(link.getToNode().getId()), link.getToNode().getCoord());
+                network.addNode(toNode);
+                addedNodes.put(link.getToNode().getId(), toNode);
+            } else {
+                toNode = addedNodes.get(link.getToNode().getId());
+            }
+
             // Create the link. Configure the attr, since the default value is irrational.
             Map<String, Double> linkAttrs = matchAndGetLinkAttr(link);
             // Check/convert the unit of the link attributes
@@ -116,6 +134,10 @@ public final class NetworkConverter {
             Link matsimLink = NetworkUtils.createAndAddLink(network, Id.createLinkId(linkId), fromNode, toNode,
                     linkAttrs.get("LENGTH_FIELD"), linkAttrs.get("MAX_SPEED_FIELD"), capacity
                     , linkAttrs.get("LANE_WIDTH_FIELD"));
+            // Add the allowed modes to the matsim link
+            Set<String> allowedModeNames = new HashSet<>();
+            link.getAllowedModes().forEach(mode -> allowedModeNames.add(mode.name));
+            matsimLink.setAllowedModes(allowedModeNames);
             // Add the reserved link attributes
             this.config.getLinkAttrParamSet().RESERVED_LINK_FIELDS.forEach(field -> {
                 matsimLink.getAttributes().putAttribute(field, link.getKeyValuePairs().getOrDefault(field, "NA"));
@@ -136,16 +158,18 @@ public final class NetworkConverter {
     }
 
     private void matchLinkMode(NetworkElement.Link link) {
-        boolean isReservedLink = false;
         // Match the transMode of the link based on the key-value pairs and the modeParamSets
         Set<TransMode.Mode> matchedModes = new HashSet<>();
         // Match the transMode based on the key-value pairs
         configuredTransModes.forEach(transMode -> {
-            if (transMode.matchTransMode(link.getKeyValuePairs())) {
+            if (transMode.matchLinkTransMode(link)) {
                 matchedModes.add(transMode.getMode());
             }
         });
         // Set the allowed modes for the link
+        if (matchedModes.contains(TransMode.Mode.OTHER) && matchedModes.size() > 1){
+            matchedModes.remove(TransMode.Mode.OTHER);
+        }
         link.addAllowedModes(matchedModes);
     }
 
@@ -258,48 +282,52 @@ public final class NetworkConverter {
         Map<String, Double> linkAttr = new HashMap<>();
         // Get the max default capacity, freespeed, width, etc. based on the allowedTransModes
         Map<String, Double> maxDefaultAttr = new HashMap<>();
-        link.getAllowedModes().forEach(mode -> {
+        for (TransMode.Mode mode : link.getAllowedModes()){
             this.configuredTransModes.forEach(transMode -> {
-                if (transMode.getMode().equals(mode)){
+                if (transMode.getMode().name.equals(mode.name)) {
                     Double maxFreeSpeed_ = maxDefaultAttr.putIfAbsent("MAX_SPEED_FIELD", transMode.getDefaultMaxSpeed());
-                    if (maxFreeSpeed_ != null){
+                    if (maxFreeSpeed_ != null) {
                         maxDefaultAttr.put("MAX_SPEED_FIELD", Math.max(maxFreeSpeed_, transMode.getDefaultMaxSpeed()));
                     }
                     Double maxWidth_ = maxDefaultAttr.putIfAbsent("LANE_WIDTH_FIELD", transMode.getDefaultLaneWidth());
-                    if (maxWidth_ != null){
+                    if (maxWidth_ != null) {
                         maxDefaultAttr.put("LANE_WIDTH_FIELD", Math.max(maxWidth_, transMode.getDefaultLaneWidth()));
                     }
                     Double maxLanes_ = maxDefaultAttr.putIfAbsent("LANES_FIELD", transMode.getDefaultLanes());
-                    if (maxLanes_ != null){
+                    if (maxLanes_ != null) {
                         maxDefaultAttr.put("LANES_FIELD", Math.max(maxLanes_, transMode.getDefaultLanes()));
                     }
                 }
             });
-        });
+        }
 
         // Match the LinkAttrParamSet based on the key-value pairs
         this.config.getLinkAttrParamSet().getParams().forEach((param, field) -> {
             // if the key-value pairs contain the field, get the value
             if (link.getKeyValuePairs().containsKey(field)
                     && link.getKeyValuePairs().get(field) != null
-                    && !link.getKeyValuePairs().get(field).trim().isEmpty()){
+                    && !link.getKeyValuePairs().get(field).trim().isEmpty()
+                    && !link.getKeyValuePairs().get(field).equals("LENGTH_FIELD")) {
                 try {
                     linkAttr.put(param, Double.parseDouble(link.getKeyValuePairs().get(field)));
                 } catch (NumberFormatException e){
-                    if (param.equals("LENGTH_FIELD")){
-                        double length;
-                        // if the field is length, calculate the length based on the coordinates of the fromNode and toNode
-                        if (link.getFromNode().getCoord().hasZ()){
-                            length = Utils.calculateDistWithElevation(link.getFromNode().getCoord(), link.getToNode().getCoord());
-                        } else {
-                            length = Utils.calculateHaversineDist(link.getFromNode().getCoord(), link.getToNode().getCoord());
-                    }
-                        linkAttr.put(param, length);
+                    // raise an error if the value is not a number
+                    throw new NumberFormatException("The value of the field: " + field + " is not a number for link: " + link.getId() + "!");
+//                    linkAttr.put(param, maxDefaultAttr.get(param));
                 }
+            } else {  // if the field is not found in the key-value pairs, use the default value
+                if (param.equals("LENGTH_FIELD")){
+                    double length;
+                    // if the field is length, calculate the length based on the coordinates of the fromNode and toNode
+                    if (link.getFromNode().getCoord().hasZ()){
+                        length = Utils.calculateDistWithElevation(link.getFromNode().getCoord(), link.getToNode().getCoord());
+                    } else {
+                        length = Utils.calculateHaversineDist(link.getFromNode().getCoord(), link.getToNode().getCoord());
+                    }
+                    linkAttr.put(param, length >0 ? length : 1);
+                } else {
                     linkAttr.put(param, maxDefaultAttr.get(param));
                 }
-            } else {
-                linkAttr.put(param, maxDefaultAttr.get(param));
             }
         });
 

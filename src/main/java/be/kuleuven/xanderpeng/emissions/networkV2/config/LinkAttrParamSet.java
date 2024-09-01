@@ -3,6 +3,7 @@ package be.kuleuven.xanderpeng.emissions.networkV2.config;
 import org.matsim.core.api.internal.MatsimParameters;
 import org.matsim.core.config.ReflectiveConfigGroup;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,7 +12,7 @@ import java.util.Set;
  *
  */
 public class LinkAttrParamSet extends ReflectiveConfigGroup implements MatsimParameters {
-    @Comment
+
     public static final String GROUP_NAME = "linkAttrParamSet";
 
     @Parameter
@@ -24,19 +25,12 @@ public class LinkAttrParamSet extends ReflectiveConfigGroup implements MatsimPar
     public String LANES_FIELD;
 
     @Parameter
-    public String WIDTH_FIELD;
+    public String LANE_WIDTH_FIELD;
 
     @Parameter
     public String LENGTH_FIELD;
 
-    @Comment("""
-            The unit of the input parameters; which could be (m or km; m/s or km/h);
-            \t\t\t However, It is highly recommended to convert them to the meter-based units (i.e., m, m/s.) before running the converter.""")
-    public Map<String, String> INPUT_PARAM_UNIT = Map.of(
-            "MAX_SPEED_FIELD", "m/s",
-            "WIDTH_FIELD", "m",
-            "LENGTH_FIELD", "m"
-    );
+    public Map<String, String> INPUT_PARAM_UNIT = new HashMap<>();
 
     @Parameter
     @Comment("The reserved fields in the link attributes, the value of these fields will be reserved as link attributes in the output network.")
@@ -71,11 +65,18 @@ public class LinkAttrParamSet extends ReflectiveConfigGroup implements MatsimPar
         this.MAX_SPEED_FIELD = maxSpeedField;
         this.CAPACITY_FIELD = capacityField;
         this.LANES_FIELD = lanesField;
-        this.WIDTH_FIELD = widthField;
+        this.LANE_WIDTH_FIELD = widthField;
         this.LENGTH_FIELD = lengthField;
         this.RESERVED_LINK_FIELDS = reservedLinkFields;
         this.INPUT_PARAM_UNIT = inputParamUnit;
     }
 
+    @Override
+    public Map<String, String> getComments(){
+        Map<String, String> map = super.getComments();
+        map.put("INPUT_PARAM_UNIT", "The unit of the input parameters; which could be (m or km; m/s or km/h); " +
+                "However, It is highly recommended to convert them to the meter-based units (i.e., m, m/s.) before running the converter.");
+        return map;
+    }
 }
 

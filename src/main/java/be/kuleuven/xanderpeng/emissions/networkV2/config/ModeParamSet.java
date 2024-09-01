@@ -1,14 +1,14 @@
 package be.kuleuven.xanderpeng.emissions.networkV2.config;
 
 import be.kuleuven.xanderpeng.emissions.networkV2.core.ModeKeyValueMapping;
+import be.kuleuven.xanderpeng.emissions.networkV2.core.TransMode;
 import org.matsim.core.api.internal.MatsimParameters;
 import org.matsim.core.config.ReflectiveConfigGroup;
-import be.kuleuven.xanderpeng.emissions.networkV2.core.TransMode;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 
 public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParameters {
 
@@ -44,7 +44,7 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
         for (Map<String, String> map : KEY_VALUE_MAPPING) {
             sb.append("{");
 
-            map.forEach((key, value) -> sb.append(key).append(":").append(value).append(","));
+            map.forEach((key, value) -> sb.append(key).append("=").append(value).append(","));
             if (!map.isEmpty()) {
                 sb.deleteCharAt(sb.length() - 1); // delete the last comma
             }
@@ -71,7 +71,7 @@ public class ModeParamSet extends ReflectiveConfigGroup implements MatsimParamet
 
                 for (String keyValue : keyValuePairs) {
                     // Split the key-value pair by colon to separate key and value
-                    String[] keyValueArray = keyValue.split(":");
+                    String[] keyValueArray = keyValue.split("=");
                     // Check if the key-value pair has exactly two elements (key and value)
                     if (keyValueArray.length == 2) {
                         map.put(keyValueArray[0].trim(), keyValueArray[1].trim());

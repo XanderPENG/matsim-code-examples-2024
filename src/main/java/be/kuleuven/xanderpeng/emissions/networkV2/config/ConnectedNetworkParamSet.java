@@ -43,7 +43,7 @@ public class ConnectedNetworkParamSet extends ReflectiveConfigGroup implements M
         Set<TransMode.Mode> set = new HashSet<>();
         // Split the input string by commas to get individual mode strings
         for (String mode : modeString.split(",")) {
-            set.add(TransMode.Mode.valueOf(mode.trim()));
+            set.add(TransMode.Mode.valueOf(mode.toUpperCase().trim()));
         }
         this.MODE = set;
     }
